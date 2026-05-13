@@ -1,0 +1,655 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .app-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 1rem 0;
+    gap: 1.5rem;
+  }
+  .nav-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 0 1rem;
+  }
+  .nav-tab {
+    padding: 6px 12px;
+    font-size: 12px;
+    border-radius: 20px;
+    border: 0.5px solid var(--color-border-secondary);
+    background: var(--color-background-primary);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .nav-tab.active {
+    background: #1D9E75;
+    color: #fff;
+    border-color: #1D9E75;
+  }
+  .phone-frame {
+    width: 340px;
+    min-height: 620px;
+    background: var(--color-background-primary);
+    border-radius: 32px;
+    border: 1.5px solid var(--color-border-secondary);
+    overflow: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+  }
+  .status-bar {
+    background: #0F6E56;
+    padding: 10px 20px 8px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .status-bar span { color: #fff; font-size: 11px; font-weight: 500; }
+  .screen { display: none; flex-direction: column; flex: 1; }
+  .screen.active { display: flex; }
+
+  /* ---- SCREEN 1: Onboarding ---- */
+  .onboard-hero {
+    background: linear-gradient(160deg, #0F6E56 0%, #1D9E75 60%, #5DCAA5 100%);
+    padding: 40px 24px 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .logo-circle {
+    width: 64px; height: 64px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 20px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .logo-circle i { font-size: 32px; color: #fff; }
+  .onboard-hero h1 { font-size: 22px; font-weight: 500; color: #fff; text-align: center; }
+  .onboard-hero p { font-size: 13px; color: rgba(255,255,255,0.85); text-align: center; line-height: 1.5; }
+  .onboard-body { padding: 24px 20px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .feat-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 0.5px solid var(--color-border-tertiary);
+  }
+  .feat-icon {
+    width: 36px; height: 36px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .feat-icon i { font-size: 18px; }
+  .feat-icon.green { background: #E1F5EE; } .feat-icon.green i { color: #0F6E56; }
+  .feat-icon.blue { background: #E6F1FB; } .feat-icon.blue i { color: #185FA5; }
+  .feat-icon.amber { background: #FAEEDA; } .feat-icon.amber i { color: #854F0B; }
+  .feat-text p { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .feat-text span { font-size: 11px; color: var(--color-text-secondary); }
+  .btn-primary {
+    margin: 0 20px 20px;
+    padding: 14px;
+    background: #1D9E75;
+    color: #fff;
+    border: none;
+    border-radius: 14px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .btn-secondary {
+    margin: 0 20px 12px;
+    padding: 12px;
+    background: var(--color-background-secondary);
+    color: var(--color-text-primary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: 14px;
+    font-size: 14px;
+    cursor: pointer;
+  }
+
+  /* ---- SCREEN 2: Home Dashboard ---- */
+  .top-bar {
+    background: #0F6E56;
+    padding: 14px 20px 18px;
+  }
+  .top-bar-row { display: flex; justify-content: space-between; align-items: center; }
+  .greeting p { font-size: 11px; color: rgba(255,255,255,0.75); }
+  .greeting h2 { font-size: 16px; font-weight: 500; color: #fff; }
+  .avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .avatar i { font-size: 18px; color: #fff; }
+  .balance-card {
+    margin: -14px 16px 0;
+    background: var(--color-background-primary);
+    border-radius: var(--border-radius-lg);
+    border: 0.5px solid var(--color-border-tertiary);
+    padding: 16px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .balance-label { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 4px; }
+  .balance-amount { font-size: 20px; font-weight: 500; color: var(--color-text-primary); }
+  .balance-sub { font-size: 11px; color: #1D9E75; }
+  .status-pill {
+    padding: 6px 10px;
+    background: #E1F5EE;
+    color: #0F6E56;
+    border-radius: 20px;
+    font-size: 11px; font-weight: 500;
+  }
+  .section-title {
+    font-size: 13px; font-weight: 500;
+    color: var(--color-text-secondary);
+    padding: 14px 20px 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .quick-actions {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 8px; padding: 0 16px 8px;
+  }
+  .qa-btn {
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 10px 4px;
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-tertiary);
+    cursor: pointer;
+  }
+  .qa-btn i { font-size: 20px; }
+  .qa-btn span { font-size: 10px; color: var(--color-text-secondary); text-align: center; line-height: 1.3; }
+  .qa-btn.g i { color: #1D9E75; }
+  .qa-btn.b i { color: #185FA5; }
+  .qa-btn.a i { color: #854F0B; }
+  .qa-btn.r i { color: #A32D2D; }
+  .activity-list { padding: 0 16px; display: flex; flex-direction: column; gap: 8px; }
+  .activity-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 12px;
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-tertiary);
+  }
+  .act-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .act-icon i { font-size: 15px; }
+  .act-icon.teal { background: #E1F5EE; } .act-icon.teal i { color: #0F6E56; }
+  .act-icon.blue { background: #E6F1FB; } .act-icon.blue i { color: #185FA5; }
+  .act-info { flex: 1; }
+  .act-info p { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .act-info span { font-size: 11px; color: var(--color-text-secondary); }
+  .act-badge {
+    font-size: 11px; font-weight: 500; padding: 3px 8px; border-radius: 20px;
+  }
+  .act-badge.pending { background: #FAEEDA; color: #854F0B; }
+  .act-badge.ok { background: #E1F5EE; color: #0F6E56; }
+
+  /* ---- SCREEN 3: Loan Request ---- */
+  .screen-header {
+    background: #0F6E56;
+    padding: 14px 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .screen-header i { font-size: 20px; color: rgba(255,255,255,0.8); cursor: pointer; }
+  .screen-header h2 { font-size: 15px; font-weight: 500; color: #fff; }
+  .form-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; flex: 1; }
+  .form-group { display: flex; flex-direction: column; gap: 6px; }
+  .form-label { font-size: 12px; color: var(--color-text-secondary); font-weight: 500; }
+  .form-select, .form-input {
+    padding: 10px 12px;
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-secondary);
+    border-radius: var(--border-radius-md);
+    font-size: 13px;
+    color: var(--color-text-primary);
+    width: 100%;
+  }
+  .type-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .type-card {
+    padding: 12px;
+    background: var(--color-background-secondary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-md);
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    cursor: pointer;
+  }
+  .type-card.selected { border: 1.5px solid #1D9E75; background: #E1F5EE; }
+  .type-card i { font-size: 22px; color: #1D9E75; }
+  .type-card span { font-size: 12px; color: var(--color-text-primary); text-align: center; }
+  .amount-display {
+    text-align: center;
+    padding: 16px;
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-lg);
+    border: 0.5px solid var(--color-border-tertiary);
+  }
+  .amount-display .big { font-size: 28px; font-weight: 500; color: #0F6E56; }
+  .amount-display small { font-size: 11px; color: var(--color-text-secondary); }
+  .range-slider { width: 100%; accent-color: #1D9E75; }
+  .sim-card {
+    background: #E1F5EE;
+    border-radius: var(--border-radius-lg);
+    border: 0.5px solid #9FE1CB;
+    padding: 14px;
+    display: flex; justify-content: space-between;
+  }
+  .sim-item { text-align: center; }
+  .sim-item .val { font-size: 15px; font-weight: 500; color: #0F6E56; }
+  .sim-item .lbl { font-size: 10px; color: #1D9E75; margin-top: 2px; }
+
+  /* ---- SCREEN 4: Bank Offers ---- */
+  .offer-list { padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; flex: 1; }
+  .offer-card {
+    background: var(--color-background-primary);
+    border: 0.5px solid var(--color-border-tertiary);
+    border-radius: var(--border-radius-lg);
+    padding: 14px;
+  }
+  .offer-card.best { border: 1.5px solid #1D9E75; }
+  .offer-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px; }
+  .bank-name { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+  .bank-sub { font-size: 11px; color: var(--color-text-secondary); }
+  .best-badge { background: #1D9E75; color: #fff; font-size: 10px; padding: 3px 8px; border-radius: 20px; }
+  .offer-stats { display: flex; gap: 8px; margin-bottom: 10px; }
+  .stat-box {
+    flex: 1; background: var(--color-background-secondary);
+    border-radius: var(--border-radius-md); padding: 8px;
+    text-align: center;
+    border: 0.5px solid var(--color-border-tertiary);
+  }
+  .stat-box .v { font-size: 14px; font-weight: 500; color: var(--color-text-primary); }
+  .stat-box .l { font-size: 10px; color: var(--color-text-secondary); }
+  .choose-btn {
+    width: 100%; padding: 10px;
+    border-radius: var(--border-radius-md);
+    border: none; cursor: pointer;
+    font-size: 13px; font-weight: 500;
+  }
+  .choose-btn.primary { background: #1D9E75; color: #fff; }
+  .choose-btn.outline { background: var(--color-background-secondary); color: var(--color-text-primary); border: 0.5px solid var(--color-border-secondary); }
+
+  /* ---- SCREEN 5: Profile/KYC ---- */
+  .profile-hero {
+    background: #0F6E56;
+    padding: 20px 20px 30px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .profile-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid rgba(255,255,255,0.4);
+  }
+  .profile-avatar i { font-size: 32px; color: #fff; }
+  .profile-hero h2 { font-size: 16px; font-weight: 500; color: #fff; }
+  .profile-hero span { font-size: 12px; color: rgba(255,255,255,0.7); }
+  .kyc-progress {
+    margin: -14px 16px 0;
+    background: var(--color-background-primary);
+    border-radius: var(--border-radius-lg);
+    border: 0.5px solid var(--color-border-tertiary);
+    padding: 14px;
+  }
+  .kyc-title { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 8px; }
+  .progress-bar { height: 6px; background: var(--color-background-secondary); border-radius: 3px; overflow: hidden; margin-bottom: 4px; }
+  .progress-fill { height: 100%; background: #1D9E75; border-radius: 3px; width: 65%; }
+  .kyc-pct { font-size: 11px; color: #1D9E75; text-align: right; }
+  .menu-list { padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+  .menu-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 14px;
+    background: var(--color-background-secondary);
+    border-radius: var(--border-radius-md);
+    border: 0.5px solid var(--color-border-tertiary);
+    cursor: pointer;
+  }
+  .menu-item i.lead { font-size: 18px; color: #1D9E75; }
+  .menu-item .txt p { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .menu-item .txt span { font-size: 11px; color: var(--color-text-secondary); }
+  .menu-item i.trail { font-size: 16px; color: var(--color-text-secondary); margin-left: auto; }
+  .menu-item .check { width: 18px; height: 18px; border-radius: 50%; background: #1D9E75; display: flex; align-items: center; justify-content: center; margin-left: auto; }
+  .menu-item .check i { font-size: 11px; color: #fff; }
+
+  /* ---- Bottom Nav ---- */
+  .bottom-nav {
+    display: flex; border-top: 0.5px solid var(--color-border-tertiary);
+    background: var(--color-background-primary);
+  }
+  .bnav-item {
+    flex: 1; display: flex; flex-direction: column; align-items: center;
+    padding: 10px 0 8px; cursor: pointer; gap: 3px;
+  }
+  .bnav-item i { font-size: 20px; color: var(--color-text-secondary); }
+  .bnav-item span { font-size: 10px; color: var(--color-text-secondary); }
+  .bnav-item.active i { color: #1D9E75; }
+  .bnav-item.active span { color: #1D9E75; }
+</style>
+
+<h2 class="sr-only">Maquette interactive de l'application mobile Prêt Santé — 5 écrans principaux navigables</h2>
+
+<div class="app-wrapper">
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showScreen(0)">Accueil</button>
+    <button class="nav-tab" onclick="showScreen(1)">Tableau de bord</button>
+    <button class="nav-tab" onclick="showScreen(2)">Demande prêt</button>
+    <button class="nav-tab" onclick="showScreen(3)">Offres banques</button>
+    <button class="nav-tab" onclick="showScreen(4)">Mon profil</button>
+  </div>
+
+  <div class="phone-frame">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span><i class="ti ti-wifi" style="font-size:13px"></i>  <i class="ti ti-battery-2" style="font-size:13px"></i></span>
+    </div>
+
+    <!-- SCREEN 0: Onboarding -->
+    <div class="screen active" id="s0">
+      <div class="onboard-hero">
+        <div class="logo-circle"><i class="ti ti-heart-rate-monitor" aria-hidden="true"></i></div>
+        <h1>Prêt Santé</h1>
+        <p>Financement rapide pour vos soins médicaux, en quelques étapes simples.</p>
+      </div>
+      <div class="onboard-body">
+        <div class="feat-row">
+          <div class="feat-icon green"><i class="ti ti-clipboard-heart" aria-hidden="true"></i></div>
+          <div class="feat-text">
+            <p>Soins financés rapidement</p>
+            <span>Dentaire, accouchement, bilans…</span>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon blue"><i class="ti ti-building-bank" aria-hidden="true"></i></div>
+          <div class="feat-text">
+            <p>Banques partenaires</p>
+            <span>Comparez et choisissez la meilleure offre</span>
+          </div>
+        </div>
+        <div class="feat-row">
+          <div class="feat-icon amber"><i class="ti ti-shield-lock" aria-hidden="true"></i></div>
+          <div class="feat-text">
+            <p>100% sécurisé</p>
+            <span>Données chiffrées, conformité locale</span>
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="showScreen(1)">Créer un compte <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+      <button class="btn-secondary" onclick="showScreen(1)">J'ai déjà un compte</button>
+    </div>
+
+    <!-- SCREEN 1: Dashboard -->
+    <div class="screen" id="s1">
+      <div class="top-bar">
+        <div class="top-bar-row">
+          <div class="greeting">
+            <p>Bonjour 👋</p>
+            <h2>Kouamé Adou</h2>
+          </div>
+          <div class="avatar"><i class="ti ti-user" aria-hidden="true"></i></div>
+        </div>
+      </div>
+      <div style="padding: 0 0 8px;">
+        <div class="balance-card">
+          <div>
+            <div class="balance-label">Prêt en cours</div>
+            <div class="balance-amount">350 000 FCFA</div>
+            <div class="balance-sub">Prochain versement : 25 juin</div>
+          </div>
+          <span class="status-pill"><i class="ti ti-check" style="font-size:12px"></i> Actif</span>
+        </div>
+      </div>
+      <div class="section-title">Actions rapides</div>
+      <div class="quick-actions">
+        <div class="qa-btn g" onclick="showScreen(2)"><i class="ti ti-plus" aria-hidden="true"></i><span>Nouveau prêt</span></div>
+        <div class="qa-btn b" onclick="showScreen(3)"><i class="ti ti-building-bank" aria-hidden="true"></i><span>Banques</span></div>
+        <div class="qa-btn a"><i class="ti ti-file-upload" aria-hidden="true"></i><span>Documents</span></div>
+        <div class="qa-btn r"><i class="ti ti-calendar" aria-hidden="true"></i><span>Échéancier</span></div>
+      </div>
+      <div class="section-title">Activité récente</div>
+      <div class="activity-list">
+        <div class="activity-item">
+          <div class="act-icon teal"><i class="ti ti-tooth" aria-hidden="true"></i></div>
+          <div class="act-info"><p>Prothèse dentaire</p><span>Clinique Avicenne · 15 mai</span></div>
+          <span class="act-badge ok">Accepté</span>
+        </div>
+        <div class="activity-item">
+          <div class="act-icon blue"><i class="ti ti-stethoscope" aria-hidden="true"></i></div>
+          <div class="act-info"><p>Bilan de santé</p><span>Centre Médical IBK · 2 mai</span></div>
+          <span class="act-badge pending">En cours</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 2: Loan request -->
+    <div class="screen" id="s2">
+      <div class="screen-header">
+        <i class="ti ti-arrow-left" onclick="showScreen(1)" aria-label="Retour"></i>
+        <h2>Nouvelle demande de prêt</h2>
+      </div>
+      <div class="form-body">
+        <div class="form-group">
+          <div class="form-label">Type de soin</div>
+          <div class="type-grid">
+            <div class="type-card selected" id="tc1" onclick="selectType(1)">
+              <i class="ti ti-tooth" aria-hidden="true"></i>
+              <span>Prothèse dentaire</span>
+            </div>
+            <div class="type-card" id="tc2" onclick="selectType(2)">
+              <i class="ti ti-baby-carriage" aria-hidden="true"></i>
+              <span>Accouchement</span>
+            </div>
+            <div class="type-card" id="tc3" onclick="selectType(3)">
+              <i class="ti ti-activity" aria-hidden="true"></i>
+              <span>Bilan de santé</span>
+            </div>
+            <div class="type-card" id="tc4" onclick="selectType(4)">
+              <i class="ti ti-plus" aria-hidden="true"></i>
+              <span>Autre soin</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Établissement de santé</div>
+          <select class="form-select">
+            <option>Clinique Avicenne – Abidjan</option>
+            <option>Centre Médical IBK – Plateau</option>
+            <option>Polyclinique Internationale</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Montant souhaité</div>
+          <div class="amount-display">
+            <div class="big" id="amount-val">250 000 FCFA</div>
+            <small>Déplacez le curseur pour ajuster</small>
+          </div>
+          <input type="range" class="range-slider" min="50000" max="1000000" step="10000" value="250000"
+            oninput="updateAmount(this.value)" style="margin-top:8px;">
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--color-text-secondary);">
+            <span>50 000</span><span>1 000 000 FCFA</span>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="form-label">Durée de remboursement</div>
+          <select class="form-select" id="duration-sel" onchange="updateSim()">
+            <option value="6">6 mois</option>
+            <option value="12" selected>12 mois</option>
+            <option value="18">18 mois</option>
+            <option value="24">24 mois</option>
+          </select>
+        </div>
+        <div class="sim-card">
+          <div class="sim-item">
+            <div class="val" id="sim-monthly">22 500 FCFA</div>
+            <div class="lbl">/ mois</div>
+          </div>
+          <div class="sim-item">
+            <div class="val">8,5%</div>
+            <div class="lbl">Taux</div>
+          </div>
+          <div class="sim-item">
+            <div class="val" id="sim-total">270 000 FCFA</div>
+            <div class="lbl">Total</div>
+          </div>
+        </div>
+        <button class="btn-primary" style="margin:0;" onclick="showScreen(3)">Voir les offres <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+      </div>
+    </div>
+
+    <!-- SCREEN 3: Bank offers -->
+    <div class="screen" id="s3">
+      <div class="screen-header">
+        <i class="ti ti-arrow-left" onclick="showScreen(2)" aria-label="Retour"></i>
+        <h2>Offres des banques</h2>
+      </div>
+      <div style="padding: 12px 16px 0; font-size: 12px; color: var(--color-text-secondary);">
+        3 offres disponibles pour 250 000 FCFA sur 12 mois
+      </div>
+      <div class="offer-list">
+        <div class="offer-card best">
+          <div class="offer-top">
+            <div>
+              <div class="bank-name">SGCI Santé +</div>
+              <div class="bank-sub">Société Générale CI</div>
+            </div>
+            <span class="best-badge">Meilleure offre</span>
+          </div>
+          <div class="offer-stats">
+            <div class="stat-box"><div class="v">7,9%</div><div class="l">Taux</div></div>
+            <div class="stat-box"><div class="v">21 875</div><div class="l">/ mois (FCFA)</div></div>
+            <div class="stat-box"><div class="v">48h</div><div class="l">Délai</div></div>
+          </div>
+          <button class="choose-btn primary" onclick="showScreen(4)">Choisir cette offre</button>
+        </div>
+        <div class="offer-card">
+          <div class="offer-top">
+            <div>
+              <div class="bank-name">BNI Crédit Santé</div>
+              <div class="bank-sub">Banque Nationale d'Investissement</div>
+            </div>
+          </div>
+          <div class="offer-stats">
+            <div class="stat-box"><div class="v">9,2%</div><div class="l">Taux</div></div>
+            <div class="stat-box"><div class="v">22 917</div><div class="l">/ mois (FCFA)</div></div>
+            <div class="stat-box"><div class="v">72h</div><div class="l">Délai</div></div>
+          </div>
+          <button class="choose-btn outline">Choisir cette offre</button>
+        </div>
+        <div class="offer-card">
+          <div class="offer-top">
+            <div>
+              <div class="bank-name">ECOBANK Flex</div>
+              <div class="bank-sub">Ecobank Côte d'Ivoire</div>
+            </div>
+          </div>
+          <div class="offer-stats">
+            <div class="stat-box"><div class="v">10,5%</div><div class="l">Taux</div></div>
+            <div class="stat-box"><div class="v">23 542</div><div class="l">/ mois (FCFA)</div></div>
+            <div class="stat-box"><div class="v">5 jours</div><div class="l">Délai</div></div>
+          </div>
+          <button class="choose-btn outline">Choisir cette offre</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCREEN 4: Profile KYC -->
+    <div class="screen" id="s4">
+      <div class="profile-hero">
+        <div class="profile-avatar"><i class="ti ti-user" aria-hidden="true"></i></div>
+        <h2>Kouamé Adou</h2>
+        <span>koua.adou@email.com · +225 07 00 00 00</span>
+      </div>
+      <div style="padding: 0 0 8px;">
+        <div class="kyc-progress" style="margin: -14px 16px 0;">
+          <div class="kyc-title">Profil KYC complété</div>
+          <div class="progress-bar"><div class="progress-fill"></div></div>
+          <div class="kyc-pct">65% — 2 documents manquants</div>
+        </div>
+      </div>
+      <div class="menu-list">
+        <div class="menu-item">
+          <i class="ti ti-id-badge lead" aria-hidden="true"></i>
+          <div class="txt"><p>Carte Nationale d'Identité</p><span>Recto-verso · Vérifié</span></div>
+          <div class="check"><i class="ti ti-check" aria-hidden="true"></i></div>
+        </div>
+        <div class="menu-item">
+          <i class="ti ti-file-text lead" aria-hidden="true"></i>
+          <div class="txt"><p>Bulletins de salaire</p><span>3 derniers mois · Vérifié</span></div>
+          <div class="check"><i class="ti ti-check" aria-hidden="true"></i></div>
+        </div>
+        <div class="menu-item">
+          <i class="ti ti-building-bank lead" style="color:#854F0B" aria-hidden="true"></i>
+          <div class="txt"><p>Relevé bancaire</p><span>Non fourni · En attente</span></div>
+          <i class="ti ti-upload trail" aria-hidden="true"></i>
+        </div>
+        <div class="menu-item">
+          <i class="ti ti-notes-medical lead" style="color:#854F0B" aria-hidden="true"></i>
+          <div class="txt"><p>Devis médical</p><span>Non fourni · En attente</span></div>
+          <i class="ti ti-upload trail" aria-hidden="true"></i>
+        </div>
+        <div class="menu-item" style="margin-top:4px;">
+          <i class="ti ti-settings lead" style="color:var(--color-text-secondary)" aria-hidden="true"></i>
+          <div class="txt"><p>Paramètres du compte</p><span>Sécurité, notifications</span></div>
+          <i class="ti ti-chevron-right trail" aria-hidden="true"></i>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Nav -->
+    <div class="bottom-nav">
+      <div class="bnav-item active" onclick="showScreen(1); setNav(0)">
+        <i class="ti ti-home" aria-hidden="true"></i><span>Accueil</span>
+      </div>
+      <div class="bnav-item" onclick="showScreen(2); setNav(1)">
+        <i class="ti ti-plus-circle" aria-hidden="true"></i><span>Prêt</span>
+      </div>
+      <div class="bnav-item" onclick="showScreen(3); setNav(2)">
+        <i class="ti ti-building-bank" aria-hidden="true"></i><span>Banques</span>
+      </div>
+      <div class="bnav-item" onclick="showScreen(4); setNav(3)">
+        <i class="ti ti-user" aria-hidden="true"></i><span>Profil</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function showScreen(n) {
+  document.querySelectorAll('.screen').forEach((s,i) => {
+    s.classList.toggle('active', i === n);
+  });
+  document.querySelectorAll('.nav-tab').forEach((t,i) => {
+    t.classList.toggle('active', i === n);
+  });
+  const navMap = {1:0, 2:1, 3:2, 4:3};
+  if (navMap[n] !== undefined) setNav(navMap[n]);
+}
+function setNav(n) {
+  document.querySelectorAll('.bnav-item').forEach((b,i) => b.classList.toggle('active', i===n));
+}
+function selectType(n) {
+  for(let i=1;i<=4;i++) {
+    document.getElementById('tc'+i).classList.toggle('selected', i===n);
+  }
+}
+function fmt(v) {
+  return new Intl.NumberFormat('fr-FR').format(Math.round(v)) + ' FCFA';
+}
+function updateAmount(val) {
+  document.getElementById('amount-val').textContent = fmt(val);
+  updateSim();
+}
+function updateSim() {
+  const amt = parseFloat(document.querySelector('.range-slider').value);
+  const dur = parseFloat(document.getElementById('duration-sel').value);
+  const rate = 0.085 / 12;
+  const monthly = amt * rate * Math.pow(1+rate, dur) / (Math.pow(1+rate, dur) - 1);
+  document.getElementById('sim-monthly').textContent = fmt(monthly);
+  document.getElementById('sim-total').textContent = fmt(monthly * dur);
+}
+</script>
