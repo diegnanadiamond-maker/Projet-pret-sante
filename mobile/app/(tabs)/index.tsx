@@ -1,14 +1,17 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Plus, Building2, FileUp, Calendar, Check, Tooth, Activity, Stethoscope } from 'lucide-react-native';
+import { Plus, Building2, FileUp, Calendar, Check, Smile, Activity, Stethoscope } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+
+import { useData } from '@/context/DataContext';
 
 export default function DashboardScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { kycPct } = useData();
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -19,22 +22,29 @@ export default function DashboardScreen() {
             <Text style={styles.userName}>Kouamé Adou</Text>
           </View>
           <View style={styles.avatar}>
-            <UserIcon size={20} color="#fff" />
+            <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#fff' }} />
           </View>
         </View>
       </View>
 
       <View style={styles.balanceCardContainer}>
         <View style={[styles.balanceCard, { borderColor: colors.border, backgroundColor: colors.background }]}>
-          <View>
-            <Text style={styles.balanceLabel}>Prêt en cours</Text>
-            <Text style={[styles.balanceAmount, { color: colors.text }]}>350 000 FCFA</Text>
-            <Text style={[styles.balanceSub, { color: colors.primary }]}>Prochain versement : 25 juin</Text>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.balanceLabel}>{kycPct < 100 ? "Finalisez votre profil" : "Prêt en cours"}</Text>
+            <Text style={[styles.balanceAmount, { color: colors.text }]}>{kycPct < 100 ? `${kycPct}% complété` : "350 000 FCFA"}</Text>
+            <Text style={[styles.balanceSub, { color: colors.primary }]}>
+              {kycPct < 100 ? "Ajoutez les documents manquants" : "Prochain versement : 25 juin"}
+            </Text>
           </View>
-          <View style={[styles.statusPill, { backgroundColor: colors.lightGreen }]}>
-            <Check size={12} color={colors.secondary} />
-            <Text style={[styles.statusText, { color: colors.secondary }]}>Actif</Text>
-          </View>
+          <TouchableOpacity 
+            style={[styles.statusPill, { backgroundColor: kycPct < 100 ? '#FAEEDA' : colors.lightGreen }]}
+            onPress={() => router.push('/(tabs)/profile')}
+          >
+            {kycPct === 100 && <Check size={12} color={colors.secondary} />}
+            <Text style={[styles.statusText, { color: kycPct < 100 ? '#854F0B' : colors.secondary }]}>
+              {kycPct < 100 ? "Action requise" : "Actif"}
+            </Text>
+          </TouchableOpacity>
         </View>
       </View>
 
@@ -66,7 +76,7 @@ export default function DashboardScreen() {
         <Text style={styles.sectionTitle}>Activité récente</Text>
         <View style={styles.activityList}>
           <ActivityItem 
-            icon={<Tooth size={18} color={colors.secondary} />}
+            icon={<Smile size={18} color={colors.secondary} />}
             iconBg={colors.lightGreen}
             title="Prothèse dentaire"
             subtitle="Clinique Avicenne · 15 mai"

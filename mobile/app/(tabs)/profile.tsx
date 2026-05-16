@@ -1,12 +1,21 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { User, IdCard, FileText, BuildingBank, NotebookMedical, Settings, Check, Upload, ChevronRight } from 'lucide-react-native';
+import { User, IdCard, FileText, Building2, Stethoscope, Settings, Check, Upload, ChevronRight } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
+
+import { useData } from '@/context/DataContext';
 
 export default function ProfileScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { kycDocs, setKycDocs, kycPct } = useData();
+
+  const handleSimulateUpload = (key: keyof typeof kycDocs) => {
+    if (!kycDocs[key]) {
+      setKycDocs(prev => ({ ...prev, [key]: true }));
+    }
+  };
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
@@ -22,9 +31,9 @@ export default function ProfileScreen() {
         <View style={[styles.kycCard, { borderColor: colors.border, backgroundColor: colors.background }]}>
           <Text style={styles.kycTitle}>Profil KYC complété</Text>
           <View style={[styles.progressBar, { backgroundColor: '#F3F4F6' }]}>
-            <View style={[styles.progressFill, { width: '65%', backgroundColor: colors.primary }]} />
+            <View style={[styles.progressFill, { width: `${kycPct}%`, backgroundColor: colors.primary }]} />
           </View>
-          <Text style={[styles.kycPct, { color: colors.primary }]}>65% — 2 documents manquants</Text>
+          <Text style={[styles.kycPct, { color: colors.primary }]}>{kycPct}% — {kycPct === 100 ? 'Profil complet' : `${Object.values(kycDocs).filter(v => !v).length} documents manquants`}</Text>
         </View>
       </View>
 
@@ -32,29 +41,33 @@ export default function ProfileScreen() {
         <MenuItem 
           icon={<IdCard size={20} color={colors.primary} />}
           title="Carte Nationale d'Identité"
-          subtitle="Recto-verso · Vérifié"
-          status="done"
+          subtitle={kycDocs.cni ? "Recto-verso · Vérifié" : "Document manquant"}
+          status={kycDocs.cni ? "done" : "upload"}
+          onPress={() => handleSimulateUpload('cni')}
           colors={colors}
         />
         <MenuItem 
           icon={<FileText size={20} color={colors.primary} />}
           title="Bulletins de salaire"
-          subtitle="3 derniers mois · Vérifié"
-          status="done"
+          subtitle={kycDocs.bulletins ? "3 derniers mois · Vérifié" : "Document manquant"}
+          status={kycDocs.bulletins ? "done" : "upload"}
+          onPress={() => handleSimulateUpload('bulletins')}
           colors={colors}
         />
         <MenuItem 
-          icon={<BuildingBank size={20} color="#854F0B" />}
+          icon={<Building2 size={20} color={kycDocs.releve ? colors.primary : "#854F0B"} />}
           title="Relevé bancaire"
-          subtitle="Non fourni · En attente"
-          status="upload"
+          subtitle={kycDocs.releve ? "Fourni · Vérifié" : "Non fourni · En attente"}
+          status={kycDocs.releve ? "done" : "upload"}
+          onPress={() => handleSimulateUpload('releve')}
           colors={colors}
         />
         <MenuItem 
-          icon={<NotebookMedical size={20} color="#854F0B" />}
+          icon={<Stethoscope size={20} color={kycDocs.devis ? colors.primary : "#854F0B"} />}
           title="Devis médical"
-          subtitle="Non fourni · En attente"
-          status="upload"
+          subtitle={kycDocs.devis ? "Fourni · Vérifié" : "Non fourni · En attente"}
+          status={kycDocs.devis ? "done" : "upload"}
+          onPress={() => handleSimulateUpload('devis')}
           colors={colors}
         />
         <View style={{ height: 16 }} />
@@ -70,9 +83,13 @@ export default function ProfileScreen() {
   );
 }
 
-function MenuItem({ icon, title, subtitle, status, colors }: any) {
+function MenuItem({ icon, title, subtitle, status, onPress, colors }: any) {
   return (
-    <TouchableOpacity style={[styles.menuItem, { backgroundColor: '#F9FAFB', borderColor: colors.border }]}>
+    <TouchableOpacity 
+      style={[styles.menuItem, { backgroundColor: '#F9FAFB', borderColor: colors.border }]}
+      onPress={onPress}
+      disabled={status === 'done' || status === 'chevron'}
+    >
       <View style={styles.menuLead}>{icon}</View>
       <View style={styles.menuText}>
         <Text style={[styles.menuTitle, { color: colors.text }]}>{title}</Text>

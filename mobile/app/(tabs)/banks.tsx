@@ -5,15 +5,29 @@ import { Star, ChevronRight } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
+import { useData } from '@/context/DataContext';
+
 export default function BankOffersScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  
+  const { loanAmount, loanDuration, calculateMonthly } = useData();
+
+  const formatPrice = (val: number) => {
+    return new Intl.NumberFormat('fr-FR').format(val);
+  };
+
+  const calculateOfferMonthly = (rate: number) => {
+    const r = rate / 100 / 12;
+    const m = loanAmount * r * Math.pow(1 + r, loanDuration) / (Math.pow(1 + r, loanDuration) - 1);
+    return formatPrice(Math.round(m));
+  };
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>3 offres disponibles pour 250 000 FCFA sur 12 mois</Text>
+        <Text style={styles.headerTitle}>{`3 offres disponibles pour ${formatPrice(loanAmount)} FCFA sur ${loanDuration} mois`}</Text>
       </View>
 
       <View style={styles.list}>
@@ -21,7 +35,7 @@ export default function BankOffersScreen() {
           bank="SGCI Santé +"
           bankFullName="Société Générale CI"
           rate="7,9%"
-          monthly="21 875"
+          monthly={calculateOfferMonthly(7.9)}
           delay="48h"
           isBest={true}
           onPress={() => router.push('/(tabs)/profile')}
@@ -32,7 +46,7 @@ export default function BankOffersScreen() {
           bank="BNI Crédit Santé"
           bankFullName="Banque Nationale d'Investissement"
           rate="9,2%"
-          monthly="22 917"
+          monthly={calculateOfferMonthly(9.2)}
           delay="72h"
           colors={colors}
         />
@@ -41,7 +55,7 @@ export default function BankOffersScreen() {
           bank="ECOBANK Flex"
           bankFullName="Ecobank Côte d'Ivoire"
           rate="10,5%"
-          monthly="23 542"
+          monthly={calculateOfferMonthly(10.5)}
           delay="5 jours"
           colors={colors}
         />

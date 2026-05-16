@@ -1,28 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Tooth, Baby, Activity, Plus, ArrowRight, ChevronDown } from 'lucide-react-native';
+import { Smile, Baby, Activity, Plus, ArrowRight, ChevronDown } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import Slider from '@react-native-community/slider';
+
+import { useData } from '@/context/DataContext';
 
 export default function LoanRequestScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  
+  const { 
+    loanAmount, setLoanAmount, 
+    loanDuration, setLoanDuration, 
+    loanType, setLoanType,
+    calculateMonthly
+  } = useData();
 
-  const [selectedType, setSelectedType] = useState(1);
-  const [amount, setAmount] = useState(250000);
-  const [duration, setDuration] = useState(12);
   const [monthly, setMonthly] = useState(0);
   const [total, setTotal] = useState(0);
 
   useEffect(() => {
-    const rate = 0.085 / 12;
-    const m = amount * rate * Math.pow(1 + rate, duration) / (Math.pow(1 + rate, duration) - 1);
-    setMonthly(Math.round(m));
-    setTotal(Math.round(m * duration));
-  }, [amount, duration]);
+    const m = calculateMonthly(loanAmount, loanDuration);
+    setMonthly(m);
+    setTotal(m * loanDuration);
+  }, [loanAmount, loanDuration]);
 
   const formatPrice = (val: number) => {
     return new Intl.NumberFormat('fr-FR').format(val) + ' FCFA';
@@ -36,34 +41,34 @@ export default function LoanRequestScreen() {
           <View style={styles.typeGrid}>
             <TypeCard 
               id={1} 
-              icon={<Tooth size={24} color={selectedType === 1 ? colors.primary : '#1D9E75'} />} 
+              icon={<Smile size={24} color={loanType === 1 ? colors.primary : '#1D9E75'} />} 
               label="Prothèse dentaire" 
-              selected={selectedType === 1} 
-              onPress={() => setSelectedType(1)}
+              selected={loanType === 1} 
+              onPress={() => setLoanType(1)}
               colors={colors}
             />
             <TypeCard 
               id={2} 
-              icon={<Baby size={24} color={selectedType === 2 ? colors.primary : '#1D9E75'} />} 
+              icon={<Baby size={24} color={loanType === 2 ? colors.primary : '#1D9E75'} />} 
               label="Accouchement" 
-              selected={selectedType === 2} 
-              onPress={() => setSelectedType(2)}
+              selected={loanType === 2} 
+              onPress={() => setLoanType(2)}
               colors={colors}
             />
             <TypeCard 
               id={3} 
-              icon={<Activity size={24} color={selectedType === 3 ? colors.primary : '#1D9E75'} />} 
+              icon={<Activity size={24} color={loanType === 3 ? colors.primary : '#1D9E75'} />} 
               label="Bilan de santé" 
-              selected={selectedType === 3} 
-              onPress={() => setSelectedType(3)}
+              selected={loanType === 3} 
+              onPress={() => setLoanType(3)}
               colors={colors}
             />
             <TypeCard 
               id={4} 
-              icon={<Plus size={24} color={selectedType === 4 ? colors.primary : '#1D9E75'} />} 
+              icon={<Plus size={24} color={loanType === 4 ? colors.primary : '#1D9E75'} />} 
               label="Autre soin" 
-              selected={selectedType === 4} 
-              onPress={() => setSelectedType(4)}
+              selected={loanType === 4} 
+              onPress={() => setLoanType(4)}
               colors={colors}
             />
           </View>
@@ -80,7 +85,7 @@ export default function LoanRequestScreen() {
         <View style={styles.formGroup}>
           <Text style={styles.formLabel}>Montant souhaité</Text>
           <View style={[styles.amountDisplay, { backgroundColor: '#F9FAFB', borderColor: colors.border }]}>
-            <Text style={[styles.amountBig, { color: colors.secondary }]}>{formatPrice(amount)}</Text>
+            <Text style={[styles.amountBig, { color: colors.secondary }]}>{formatPrice(loanAmount)}</Text>
             <Text style={styles.amountSmall}>Déplacez le curseur pour ajuster</Text>
           </View>
           <Slider
@@ -88,8 +93,8 @@ export default function LoanRequestScreen() {
             minimumValue={50000}
             maximumValue={1000000}
             step={10000}
-            value={amount}
-            onValueChange={setAmount}
+            value={loanAmount}
+            onValueChange={setLoanAmount}
             minimumTrackTintColor={colors.primary}
             maximumTrackTintColor={colors.border}
             thumbTintColor={colors.primary}
@@ -109,14 +114,14 @@ export default function LoanRequestScreen() {
                 style={[
                   styles.durationBtn, 
                   { borderColor: colors.border },
-                  duration === d && { backgroundColor: colors.lightGreen, borderColor: colors.primary }
+                  loanDuration === d && { backgroundColor: colors.lightGreen, borderColor: colors.primary }
                 ]}
-                onPress={() => setDuration(d)}
+                onPress={() => setLoanDuration(d)}
               >
                 <Text style={[
                   styles.durationText, 
                   { color: colors.text },
-                  duration === d && { color: colors.secondary, fontWeight: '700' }
+                  loanDuration === d && { color: colors.secondary, fontWeight: '700' }
                 ]}>
                   {d} mois
                 </Text>
