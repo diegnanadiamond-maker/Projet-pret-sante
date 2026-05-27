@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import './App.css';
+import PretSanteMobile from './components/PretSanteMobile';
 
 // --- MOCK DATA ---
 const MOCK_USERS = [
@@ -974,174 +975,361 @@ const LogsListView = ({ logs, handlePurgeLogs, handleExportCSV }) => (
   </div>
 );
 
-const BankDashboard = ({ showToast }) => (
-  <div className="pilotage-view animate-fade-in">
-    <div className="view-header">
-      <div className="title-group">
-        <h1>Gestionnaire de Crédit · SGCI</h1>
-        <p className="subtitle">Traitement des formalités et déblocage de fonds</p>
+const BankDashboard = ({ showToast }) => {
+  const [activeModal, setActiveModal] = useState(null); // null, 'contract', 'complement'
+  const [selectedApp, setSelectedApp] = useState(MOCK_APPLICATIONS[0]);
+  const [missingDocs, setMissingDocs] = useState({ releve: true, devis: true, ocr: false });
+  const [customComment, setCustomComment] = useState("");
+
+  const handleGenerateContract = () => {
+    setActiveModal('contract');
+  };
+
+  const handleRequestComplement = () => {
+    setActiveModal('complement');
+  };
+
+  return (
+    <div className="pilotage-view animate-fade-in">
+      <div className="view-header">
+        <div className="title-group">
+          <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Gestionnaire de Crédit · SGCI</h1>
+          <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Traitement des formalités et déblocage de fonds</p>
+        </div>
+        <div className="header-actions">
+          <span className="status-pill active-glow">
+            <i className="ti ti-antenna mr-2 text-emerald-600"></i> Connecté à Risk-Ops
+          </span>
+        </div>
       </div>
-      <div className="header-actions">
-        <span className="status-pill active-glow">
-          <i className="ti ti-antenna"></i> Connecté à Risk-Ops
-        </span>
+
+      <div className="dashboard-grid-requests">
+        <div className="requests-list-container">
+          <div className="section-header-premium mb-6">
+            <h3 className="text-xl font-bold text-slate-800 leading-snug tracking-[-0.01em]">Dossiers en attente de décision</h3>
+            <div className="filter-group">
+              <button className="filter-btn active">Tout</button>
+              <button className="filter-btn" onClick={() => showToast("Filtre appliqué")}>Risque Faible</button>
+              <button className="filter-btn" onClick={() => showToast("Filtre appliqué")}>Risque Moyen</button>
+            </div>
+          </div>
+          <div className="requests-vertical-list flex flex-col gap-4">
+            {MOCK_APPLICATIONS.map(app => (
+              <div 
+                className={`request-strip-premium glass-panel w-full flex items-center gap-6 p-5 rounded-2xl cursor-pointer hover:bg-slate-50 transition-all border ${selectedApp?.id === app.id ? 'border-emerald-500 bg-emerald-50/10' : 'border-transparent'}`} 
+                key={app.id}
+                onClick={() => setSelectedApp(app)}
+              >
+                <div className="r-avatar-group flex items-center relative">
+                  <div className="r-avatar-main w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-700">{app.user[0]}</div>
+                  <div className="r-risk-dot w-3 h-3 rounded-full absolute bottom-0 right-0 border-2 border-white" style={{ background: app.risk === 'Faible' ? '#10b981' : '#f59e0b' }}></div>
+                </div>
+                
+                <div className="r-main-info flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <strong className="text-sm font-bold text-slate-800 tracking-tight">{app.user}</strong>
+                    <span className="text-xs text-slate-400 font-mono">({app.id})</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-500 text-xs">
+                    <span>{app.care}</span>
+                    <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                    <span>{app.date}</span>
+                  </div>
+                </div>
+
+                <div className="r-scoring-premium flex flex-col items-center gap-1">
+                  <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold text-slate-700" style={{ borderColor: app.scoring > 80 ? '#10b981' : '#f59e0b' }}>
+                    {app.scoring}
+                  </div>
+                  <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Score Risk</span>
+                </div>
+
+                <div className="r-amount-premium flex flex-col items-end gap-1">
+                  <span className="text-sm font-bold text-slate-800 tracking-tight">{app.amount}</span>
+                  <span className="text-[9px] text-slate-400 uppercase tracking-wider">Montant</span>
+                </div>
+
+                {/* Notification bell and action buttons pushed completely to the right */}
+                <div className="ml-auto flex items-center gap-3">
+                  <button className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-all" title="Examiner les formalités" onClick={(e) => { e.stopPropagation(); setSelectedApp(app); showToast(`Examen du dossier de ${app.user}`); }}><i className="ti ti-file-search"></i></button>
+                  <button className="w-8 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center transition-all" title="Accorder le prêt" onClick={(e) => { e.stopPropagation(); setSelectedApp(app); handleGenerateContract(); }}><i className="ti ti-check"></i></button>
+                  
+                  {/* Pushed all the way to the right of the card */}
+                  <button 
+                    className="relative w-8 h-8 rounded-lg border border-slate-100 hover:border-emerald-100 text-slate-400 hover:text-emerald-700 flex items-center justify-center transition-all bg-white" 
+                    onClick={(e) => { e.stopPropagation(); showToast(`Rapport d'audit pour ${app.user} disponible`); }}
+                  >
+                    <i className="ti ti-bell"></i>
+                    <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full"></div>
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="risk-summary-panel flex flex-col gap-6">
+          <div className="glass-panel audit-panel-premium p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-5">
+            <div className="audit-header flex items-center gap-3">
+              <i className="ti ti-database-check text-emerald-700 text-xl"></i>
+              <h3 className="text-lg font-bold text-slate-800">Audit IA-KYC</h3>
+            </div>
+            <p className="text-slate-500 text-xs leading-normal tracking-[0.01em] mb-0">
+              Vérification en temps réel des pièces justificatives fournies par <strong>{selectedApp?.user}</strong>.
+            </p>
+
+            <div className="doc-audit-stack flex flex-col gap-3">
+              <div className="audit-item success flex items-center justify-between p-3 bg-emerald-50/30 border border-emerald-100 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="ai-ico w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-500 shadow-sm"><i className="ti ti-id"></i></div>
+                  <div className="flex flex-col gap-0.5">
+                    <strong className="text-xs font-semibold text-slate-800">CNI / Passeport</strong>
+                    <span className="text-[10px] text-slate-400">Validité : 100% · OCR OK</span>
+                  </div>
+                </div>
+                <i className="ti ti-circle-check text-emerald-600"></i>
+              </div>
+              <div className="audit-item success flex items-center justify-between p-3 bg-emerald-50/30 border border-emerald-100 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="ai-ico w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-500 shadow-sm"><i className="ti ti-file-analytics"></i></div>
+                  <div className="flex flex-col gap-0.5">
+                    <strong className="text-xs font-semibold text-slate-800">Bulletins de Salaire</strong>
+                    <span className="text-[10px] text-slate-400">Revenu stable détecté</span>
+                  </div>
+                </div>
+                <i className="ti ti-circle-check text-emerald-600"></i>
+              </div>
+              <div className="audit-item flex items-center justify-between p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                <div className="flex items-center gap-3">
+                  <div className="ai-ico w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-500 shadow-sm"><i className="ti ti-building-bank"></i></div>
+                  <div className="flex flex-col gap-0.5">
+                    <strong className="text-xs font-semibold text-slate-800">Relevé Bancaire</strong>
+                    <span className="text-[10px] text-slate-400">Vérification en attente</span>
+                  </div>
+                </div>
+                <div className="w-4 h-4 rounded-full border-2 border-slate-350 border-t-emerald-600 animate-spin"></div>
+              </div>
+            </div>
+
+            <div className="risk-meter space-y-2">
+              <div className="flex justify-between items-center text-xs font-semibold">
+                <span className="text-slate-500">Indice de confiance global</span>
+                <strong className="text-emerald-700">89%</strong>
+              </div>
+              <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                <div className="h-full bg-emerald-600" style={{ width: '89%' }}></div>
+              </div>
+            </div>
+
+            {/* Interactive functional action triggers */}
+            <div className="flex flex-col gap-3">
+              <button 
+                onClick={handleGenerateContract}
+                className="btn-premium primary w-full cursor-pointer"
+              >
+                Générer Contrat de Prêt
+              </button>
+              <button 
+                onClick={handleRequestComplement}
+                className="btn-premium secondary w-full cursor-pointer"
+              >
+                Demander Complément
+              </button>
+            </div>
+          </div>
+
+          <div className="glass-panel payout-history-card p-6 rounded-3xl border border-slate-100 shadow-sm">
+            <div className="card-header flex justify-between items-center mb-4">
+              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Décaissements Récents</h3>
+              <i className="ti ti-receipt text-slate-400"></i>
+            </div>
+            <div className="payout-list flex flex-col gap-3">
+              <div className="payout-row flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-xs font-semibold text-slate-700">S. Touré</span>
+                <strong className="text-xs font-bold text-emerald-800">450k FCFA</strong>
+                <em className="text-[10px] text-slate-400 not-italic">Aujourd'hui</em>
+              </div>
+              <div className="payout-row flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-xs font-semibold text-slate-700">M. Keita</span>
+                <strong className="text-xs font-bold text-emerald-800">120k FCFA</strong>
+                <em className="text-[10px] text-slate-400 not-italic">Hier</em>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
+
+      {/* MODAL 1: Contract Generation (Interactive) */}
+      {activeModal === 'contract' && (
+        <div className="modal-overlay animate-fade-in flex items-center justify-center z-[3000] fixed inset-0 bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="modal-card bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-100 animate-slide-up">
+            <div className="modal-header px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+              <h3 className="text-lg font-extrabold text-slate-900 leading-snug tracking-tight">Générer Contrat de Prêt</h3>
+              <button className="icon-btn-close w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all text-slate-400" onClick={() => setActiveModal(null)}>
+                <i className="ti ti-x"></i>
+              </button>
+            </div>
+            <div className="modal-body p-6 flex flex-col gap-5">
+              <div className="p-4 bg-emerald-50/40 rounded-2xl border border-emerald-100 font-mono text-xs space-y-3 text-slate-700 leading-relaxed">
+                <div className="text-center font-bold border-b border-emerald-100 pb-2 text-emerald-800 text-sm">
+                  ACTE DE CRÉDIT MÉDICAL #CM-{selectedApp?.id}
+                </div>
+                <div className="flex justify-between"><span>Bénéficiaire:</span><span className="font-bold">{selectedApp?.user}</span></div>
+                <div className="flex justify-between"><span>Établissement:</span><span className="font-bold">Clinique Avicenne</span></div>
+                <div className="flex justify-between"><span>Besoin de santé:</span><span className="font-bold">{selectedApp?.care}</span></div>
+                <div className="flex justify-between"><span>Montant Prêt:</span><span className="font-bold text-emerald-800">{selectedApp?.amount}</span></div>
+                <div className="flex justify-between"><span>Taux d'intérêt:</span><span className="font-bold">7.9% SGCI Santé +</span></div>
+                <div className="flex justify-between"><span>Durée:</span><span className="font-bold">12 Mois</span></div>
+                <div className="flex justify-between"><span>Mensualités:</span><span className="font-bold text-emerald-800">~ 21 875 FCFA / mois</span></div>
+              </div>
+              <p className="text-xs text-slate-500 leading-relaxed max-w-[70ch] mb-0">
+                La validation de cette étape va générer le contrat officiel au format PDF sécurisé, et notifier l'assuré pour signature électronique immédiate sur son espace client.
+              </p>
+              <div className="modal-actions flex justify-end gap-3 pt-2">
+                <button className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold" onClick={() => setActiveModal(null)}>Annuler</button>
+                <button 
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold shadow-md shadow-emerald-600/10" 
+                  onClick={() => {
+                    showToast(`Contrat de prêt généré avec succès pour ${selectedApp?.user} !`);
+                    setActiveModal(null);
+                  }}
+                >
+                  Confirmer & Envoyer
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: Request Complement (Interactive) */}
+      {activeModal === 'complement' && (
+        <div className="modal-overlay animate-fade-in flex items-center justify-center z-[3000] fixed inset-0 bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="modal-card bg-white rounded-3xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-100 animate-slide-up">
+            <div className="modal-header px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+              <h3 className="text-lg font-extrabold text-slate-900 leading-snug tracking-tight">Demander un Complément de Dossier</h3>
+              <button className="icon-btn-close w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all text-slate-400" onClick={() => setActiveModal(null)}>
+                <i className="ti ti-x"></i>
+              </button>
+            </div>
+            <div className="modal-body p-6 flex flex-col gap-5">
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Sélectionner les documents requis :</span>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100/50 rounded-xl cursor-pointer border border-slate-100 transition-all">
+                    <input 
+                      type="checkbox" 
+                      className="accent-emerald-600 rounded" 
+                      checked={missingDocs.releve} 
+                      onChange={(e) => setMissingDocs(p => ({ ...p, releve: e.target.checked }))} 
+                    />
+                    <span className="text-xs font-semibold text-slate-700">Relevé Bancaire (3 derniers mois)</span>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100/50 rounded-xl cursor-pointer border border-slate-100 transition-all">
+                    <input 
+                      type="checkbox" 
+                      className="accent-emerald-600 rounded" 
+                      checked={missingDocs.devis} 
+                      onChange={(e) => setMissingDocs(p => ({ ...p, devis: e.target.checked }))} 
+                    />
+                    <span className="text-xs font-semibold text-slate-700">Devis Médical Établi par la clinique</span>
+                  </label>
+                  <label className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100/50 rounded-xl cursor-pointer border border-slate-100 transition-all">
+                    <input 
+                      type="checkbox" 
+                      className="accent-emerald-600 rounded" 
+                      checked={missingDocs.ocr} 
+                      onChange={(e) => setMissingDocs(p => ({ ...p, ocr: e.target.checked }))} 
+                    />
+                    <span className="text-xs font-semibold text-slate-700">Justificatif d'Adresse ou Hébergement</span>
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Instructions complémentaires :</span>
+                <textarea 
+                  value={customComment}
+                  onChange={(e) => setCustomComment(e.target.value)}
+                  placeholder="Ex: Merci de fournir un devis signé avec le cachet du médecin conseil..."
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-750 focus:outline-none focus:ring-1 focus:ring-emerald-600 min-h-[90px]"
+                />
+              </div>
+
+              <div className="modal-actions flex justify-end gap-3 pt-2">
+                <button className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold" onClick={() => setActiveModal(null)}>Annuler</button>
+                <button 
+                  className="px-5 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold shadow-md shadow-emerald-600/10" 
+                  onClick={() => {
+                    showToast(`Demande de documents complémentaires envoyée à ${selectedApp?.user} !`);
+                    setActiveModal(null);
+                  }}
+                >
+                  Envoyer la demande
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
-
-    <div className="dashboard-grid-requests">
-      <div className="requests-list-container">
-        <div className="section-header-premium">
-          <h3>Dossiers en attente de décision</h3>
-          <div className="filter-group">
-            <button className="filter-btn active">Tout</button>
-            <button className="filter-btn">Risque Faible</button>
-            <button className="filter-btn">Risque Moyen</button>
-          </div>
-        </div>
-        <div className="requests-vertical-list">
-          {MOCK_APPLICATIONS.map(app => (
-            <div className="request-strip-premium glass-panel" key={app.id}>
-              <div className="r-avatar-group">
-                <div className="r-avatar-main">{app.user[0]}</div>
-                <div className="r-risk-dot" style={{ background: app.risk === 'Faible' ? 'var(--color-status-success)' : 'var(--color-status-warning)' }}></div>
-              </div>
-              <div className="r-main-info">
-                <div className="r-header-line">
-                  <strong>{app.user}</strong>
-                  <span className="r-id">{app.id}</span>
-                </div>
-                <div className="r-meta-line">
-                  <span>{app.care}</span>
-                  <span className="dot-sep"></span>
-                  <span>{app.date}</span>
-                </div>
-              </div>
-              <div className="r-scoring-premium">
-                <div className="score-ring" style={{ borderLeftColor: app.scoring > 80 ? 'var(--color-status-success)' : 'var(--color-status-warning)' }}>
-                  {app.scoring}
-                </div>
-                <div className="score-lbl">Score Risk</div>
-              </div>
-              <div className="r-amount-premium">
-                <span className="amount-val">{app.amount}</span>
-                <span className="amount-label">Montant demandé</span>
-              </div>
-              <div className="r-actions-premium">
-                <button className="btn-action view" title="Examiner les formalités"><i className="ti ti-file-search"></i></button>
-                <button className="btn-action approve" title="Accorder le prêt"><i className="ti ti-check"></i></button>
-                <button className="icon-btn" onClick={() => showToast("Vous avez 3 nouvelles notifications d'audit")}><i className="ti ti-bell"></i><div className="dot"></div></button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="risk-summary-panel">
-        <div className="glass-panel audit-panel-premium">
-          <div className="audit-header">
-            <i className="ti ti-database-check"></i>
-            <h3>Audit IA-KYC</h3>
-          </div>
-          <p className="audit-intro">Vérification temps réel des documents fournis par l'assuré.</p>
-
-          <div className="doc-audit-stack">
-            <div className="audit-item success">
-              <div className="ai-ico"><i className="ti ti-id"></i></div>
-              <div className="ai-body">
-                <strong>CNI / Passeport</strong>
-                <span>Validité : 100% · OCR OK</span>
-              </div>
-              <i className="ti ti-circle-check"></i>
-            </div>
-            <div className="audit-item success">
-              <div className="ai-ico"><i className="ti ti-file-analytics"></i></div>
-              <div className="ai-body">
-                <strong>Bulletins Salaire</strong>
-                <span>Revenu stable détecté</span>
-              </div>
-              <i className="ti ti-circle-check"></i>
-            </div>
-            <div className="audit-item pending">
-              <div className="ai-ico"><i className="ti ti-building-bank"></i></div>
-              <div className="ai-body">
-                <strong>Relevé Bancaire</strong>
-                <span>Analyse des flux en cours</span>
-              </div>
-              <div className="loader-mini"></div>
-            </div>
-          </div>
-
-          <div className="risk-meter">
-            <div className="meter-label"><span>Indice de confiance global</span><strong>89%</strong></div>
-            <div className="meter-bar"><div className="meter-fill" style={{ width: '89%' }}></div></div>
-          </div>
-
-          <button className="btn-premium primary w-full">Générer Contrat de Prêt</button>
-          <button className="btn-premium secondary w-full">Demander Complément</button>
-        </div>
-
-        <div className="glass-panel payout-history-card">
-          <div className="card-header">
-            <h3>Décaissements Récents</h3>
-            <i className="ti ti-receipt"></i>
-          </div>
-          <div className="payout-list">
-            <div className="payout-row">
-              <span>S. Touré</span>
-              <strong>450k</strong>
-              <em className="date">Aujourd'hui</em>
-            </div>
-            <div className="payout-row">
-              <span>M. Keita</span>
-              <strong>120k</strong>
-              <em className="date">Hier</em>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-);
+  );
+};
 
 const UserDashboard = ({ navigateToTab, kycPercentage }) => (
   <div className="pilotage-view animate-fade-in">
     <div className="view-header">
-      <h1>Mon Espace Santé</h1>
-      <div className="header-actions"><button className="btn-premium primary" onClick={() => navigateToTab('simulateur')}><i className="ti ti-plus"></i> Nouveau Prêt</button></div>
+      <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Mon Espace Santé</h1>
+      <div className="header-actions">
+        <button className="btn-premium primary" onClick={() => navigateToTab('simulateur')}><i className="ti ti-plus"></i> Nouveau Prêt</button>
+      </div>
     </div>
 
     <div className="user-dashboard-grid">
       <div className="u-main-panel">
-        <div className="metric-card-premium highlight">
-          <div className="m-info">
-            <span className="m-label">PRÊT ACTIF</span>
-            <div className="m-val">350 000 FCFA</div>
-            <span className="m-sub">Prochaine échéance : 25 Juin 2024</span>
+        <div className="metric-card-premium highlight flex items-center justify-between p-6 bg-emerald-900 text-white rounded-3xl shadow-sm">
+          <div className="m-info space-y-1">
+            <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-[0.05em]">PRÊT ACTIF</span>
+            <div className="text-2xl font-extrabold text-white tracking-tight">350 000 FCFA</div>
+            <span className="text-xs text-emerald-100/80 leading-normal tracking-[0.01em] block">Prochaine échéance : 25 Juin 2024</span>
           </div>
-          <div className="m-icon"><i className="ti ti-activity-heartbeat"></i></div>
+          <div className="m-icon text-3xl text-emerald-300"><i className="ti ti-activity-heartbeat"></i></div>
         </div>
 
-        <div className="glass-panel recent-activity">
-          <h3>Suivi des demandes</h3>
-          <div className="activity-track">
-            <div className="track-item current">
-              <div className="t-ico"><i className="ti ti-loader-2 animate-spin"></i></div>
-              <div className="t-det"><strong>Bilan de santé</strong><span>En attente de validation BNI</span></div>
+        <div className="glass-panel recent-activity p-6 bg-white border border-slate-100 rounded-3xl shadow-sm space-y-4">
+          <h3 className="text-lg font-bold text-slate-800 leading-snug tracking-[-0.01em]">Suivi des demandes</h3>
+          <div className="activity-track flex flex-col gap-4">
+            <div className="track-item current flex items-start gap-4 p-3 bg-slate-50 rounded-2xl">
+              <div className="t-ico p-2.5 bg-slate-200 rounded-xl text-slate-600 flex items-center justify-center"><i className="ti ti-loader-2 animate-spin"></i></div>
+              <div className="t-det flex-1">
+                <strong className="text-xs font-bold text-slate-850 block mb-0.5">Bilan de santé</strong>
+                <span className="text-xs text-slate-500 leading-normal">En attente de validation BNI</span>
+              </div>
             </div>
-            <div className="track-item done">
-              <div className="t-ico"><i className="ti ti-check"></i></div>
-              <div className="t-det"><strong>Soin Dentaire</strong><span>Décaissé par SGCI (12/05)</span></div>
+            <div className="track-item done flex items-start gap-4 p-3 bg-emerald-50/20 border border-emerald-100/50 rounded-2xl">
+              <div className="t-ico p-2.5 bg-emerald-550 bg-emerald-100 rounded-xl text-emerald-700 flex items-center justify-center"><i className="ti ti-check"></i></div>
+              <div className="t-det flex-1">
+                <strong className="text-xs font-bold text-emerald-900 block mb-0.5">Soin Dentaire</strong>
+                <span className="text-xs text-slate-500 leading-normal">Décaissé par SGCI (12/05)</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
       <div className="u-side-panel">
-        <div className="glass-panel kyc-summary-card">
-          <div className="k-header"><h3>Mes Formalités</h3><span>{kycPercentage}%</span></div>
-          <div className="k-bar"><div className="fill" style={{ width: `${kycPercentage}%` }}></div></div>
-          <p className="p-muted">Complétez votre dossier pour accélérer vos demandes.</p>
-          <button className="btn-premium secondary w-full" onClick={() => navigateToTab('documents')}>Gérer mes documents</button>
+        <div className="glass-panel kyc-summary-card p-6 bg-white border border-slate-100 rounded-3xl shadow-sm space-y-4 flex flex-col">
+          <div className="k-header flex justify-between items-center text-sm font-bold">
+            <h3 className="text-sm font-bold text-slate-850 uppercase tracking-wider">Mes Formalités</h3>
+            <span className="text-emerald-700">{kycPercentage}%</span>
+          </div>
+          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+            <div className="h-full bg-emerald-700" style={{ width: `${kycPercentage}%` }}></div>
+          </div>
+          <p className="text-xs text-slate-500 leading-relaxed tracking-[0.01em] mb-4 max-w-[70ch]">
+            Complétez votre dossier de formalités pour accélérer l'analyse de vos futures demandes.
+          </p>
+          <button className="btn-premium secondary w-full py-3 text-xs font-bold rounded-xl border border-slate-200 mt-auto" onClick={() => navigateToTab('documents')}>Gérer mes documents</button>
         </div>
       </div>
     </div>
@@ -1151,46 +1339,58 @@ const UserDashboard = ({ navigateToTab, kycPercentage }) => (
 const SimulationView = ({ careType, setCareType, amount, setAmount, duration, setDuration, currentSim, formatFCFA, navigateToTab, showToast }) => (
   <div className="pilotage-view animate-fade-in">
     <div className="view-header">
-      <h1>Simulateur de Crédit</h1>
+      <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Simulateur de Crédit</h1>
     </div>
-    <div className="simulation-workspace glass-panel">
-      <div className="sim-form">
-        <div className="field-group">
-          <label>Besoin Médical</label>
-          <select
-            className="premium-select"
-            value={careType}
-            onChange={(e) => setCareType(Number(e.target.value))}
-          >
-            <option value={1}>Chirurgie Générale</option>
-            <option value={2}>Soin Dentaire</option>
-            <option value={3}>Accouchement / Maternité</option>
-            <option value={4}>Bilan & Diagnostic</option>
-          </select>
+    <div className="simulation-workspace glass-panel p-6 bg-white border border-slate-100 rounded-3xl shadow-sm grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div className="sim-form flex flex-col gap-5">
+        {/* Classy medical care dropdown selector, aligned cleanly and styled premium */}
+        <div className="flex items-center justify-between py-2 border-b border-slate-100 gap-4 w-full">
+          <label className="text-sm font-bold text-slate-700 tracking-tight">Besoin Médical</label>
+          <div className="relative">
+            <select
+              className="bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-10 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer hover:bg-slate-100 transition-all min-w-[190px] shadow-sm appearance-none"
+              value={careType}
+              onChange={(e) => setCareType(Number(e.target.value))}
+            >
+              <option value={1}>Chirurgie Générale</option>
+              <option value={2}>Soin Dentaire</option>
+              <option value={3}>Accouchement / Maternité</option>
+              <option value={4}>Bilan & Diagnostic</option>
+            </select>
+            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
+              <i className="ti ti-chevron-down text-xs"></i>
+            </div>
+          </div>
         </div>
-        <div className="field-group">
-          <label>Montant Souhaité : <strong>{formatFCFA(amount)}</strong></label>
-          <input type="range" min="100000" max="2000000" step="50000" value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="premium-range" />
+
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-[0.05em] flex justify-between">
+            Montant Souhaité 
+            <strong className="text-emerald-800 text-sm font-bold font-mono tracking-tight">{formatFCFA(amount)}</strong>
+          </label>
+          <input type="range" min="100000" max="2000000" step="50000" value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="w-full accent-emerald-600 h-1.5 bg-slate-100 rounded-lg cursor-pointer" />
         </div>
-        <div className="field-group">
-          <label>Durée de remboursement : <strong>{duration} mois</strong></label>
-          <div className="duration-presets">
+
+        <div className="flex flex-col gap-2">
+          <label className="text-xs font-bold text-slate-400 uppercase tracking-[0.05em]">Durée de remboursement : <strong>{duration} mois</strong></label>
+          <div className="duration-presets flex gap-2">
             {[6, 12, 18, 24].map(d => (
-              <button key={d} className={`preset-btn ${duration === d ? 'active' : ''}`} onClick={() => setDuration(d)}>{d}m</button>
+              <button key={d} className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition-all ${duration === d ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-650 hover:bg-slate-50'}`} onClick={() => setDuration(d)}>{d} mois</button>
             ))}
           </div>
         </div>
       </div>
-      <div className="sim-results">
-        <div className="result-box">
-          <span>Mensualité estimée</span>
-          <strong>{formatFCFA(currentSim.monthly)}</strong>
+
+      <div className="sim-results bg-slate-50 border border-slate-100 rounded-2xl p-5 flex flex-col justify-between gap-5">
+        <div className="result-box space-y-1">
+          <span className="text-xs font-bold text-slate-400 uppercase tracking-[0.05em]">Mensualité estimée</span>
+          <div className="text-2xl font-extrabold text-emerald-850 tracking-tight font-mono">{formatFCFA(currentSim.monthly)}</div>
         </div>
-        <div className="result-details">
-          <div className="r-line"><span>Taux Annuel</span><b>8.5%</b></div>
-          <div className="r-line"><span>Total à rembourser</span><b>{formatFCFA(currentSim.total)}</b></div>
+        <div className="result-details border-t border-slate-200/60 pt-4 flex flex-col gap-2.5">
+          <div className="r-line flex justify-between text-xs font-semibold text-slate-500"><span>Taux Annuel (fixe)</span><b className="text-slate-800 font-bold">8.5%</b></div>
+          <div className="r-line flex justify-between text-xs font-semibold text-slate-500"><span>Total à rembourser</span><b className="text-slate-800 font-bold font-mono">{formatFCFA(currentSim.total)}</b></div>
         </div>
-        <button className="btn-premium primary w-full" onClick={() => { showToast("Simulation enregistrée"); navigateToTab('dashboard'); }}>Confirmer & Choisir une Banque</button>
+        <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-md shadow-emerald-600/10 text-sm mt-2" onClick={() => { showToast("Simulation enregistrée"); navigateToTab('dashboard'); }}>Confirmer & Choisir une Banque</button>
       </div>
     </div>
   </div>
@@ -1198,28 +1398,32 @@ const SimulationView = ({ careType, setCareType, amount, setAmount, duration, se
 
 const DocumentsView = ({ kycDocs, setKycDocs, showToast }) => (
   <div className="pilotage-view animate-fade-in">
-    <div className="view-header"><h1>Dossier de Formalités</h1></div>
-    <div className="docs-management glass-panel">
-      <div className="docs-grid">
+    <div className="view-header">
+      <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Dossier de Formalités</h1>
+    </div>
+    <div className="docs-management glass-panel p-6 bg-white border border-slate-100 rounded-3xl shadow-sm">
+      <div className="docs-grid grid grid-cols-1 md:grid-cols-2 gap-4">
         {[
           { id: 'cni', name: 'Pièce d\'identité (CNI/Passport)', status: kycDocs.cni },
           { id: 'salaire', name: '3 derniers bulletins de salaire', status: kycDocs.salaire },
           { id: 'releve', name: 'Relevé d\'identité bancaire (RIB)', status: kycDocs.releve },
           { id: 'devis', name: 'Devis de l\'établissement de soin', status: kycDocs.devis },
         ].map(doc => (
-          <div className="doc-card" key={doc.id}>
-            <div className="doc-icon"><i className={`ti ${doc.status ? 'ti-file-check' : 'ti-file-upload'}`}></i></div>
-            <div className="doc-body">
-              <strong>{doc.name}</strong>
-              <p>{doc.status ? 'Document vérifié' : 'Action requise'}</p>
+          <div className="doc-card flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-sm" key={doc.id}>
+            <div className="flex items-center gap-3">
+              <div className={`doc-icon p-2.5 rounded-xl flex items-center justify-center text-lg ${doc.status ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-slate-200 text-slate-500'}`}><i className={`ti ${doc.status ? 'ti-file-check' : 'ti-file-upload'}`}></i></div>
+              <div className="doc-body space-y-0.5">
+                <strong className="text-xs font-bold text-slate-800 leading-tight block">{doc.name}</strong>
+                <p className="text-[10px] text-slate-450 leading-none mb-0">{doc.status ? 'Document vérifié et validé' : 'Chargement requis'}</p>
+              </div>
             </div>
-            <button className={`btn-doc ${doc.status ? 'valid' : 'upload'}`} onClick={() => {
+            <button className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition-all ${doc.status ? 'bg-emerald-50 border-emerald-200 text-emerald-700 cursor-default' : 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700 shadow-sm shadow-emerald-600/10'}`} onClick={() => {
               if (!doc.status) {
                 setKycDocs(p => ({ ...p, [doc.id]: true }));
                 showToast(`Document ${doc.id.toUpperCase()} chargé avec succès`);
               }
             }}>
-              {doc.status ? <i className="ti ti-check"></i> : 'Charger'}
+              {doc.status ? <i className="ti ti-check font-bold"></i> : 'Charger'}
             </button>
           </div>
         ))}
@@ -1229,6 +1433,39 @@ const DocumentsView = ({ kycDocs, setKycDocs, showToast }) => (
 );
 
 const HelpCenterView = ({ handleSearchHelp, helpSearchQuery, showToast }) => {
+  const [activeTopic, setActiveTopic] = useState(null); // null, 'startup', 'training', 'support'
+  const [chatMessages, setChatMessages] = useState([
+    { id: 1, text: "Bonjour ! Comment puis-je vous aider aujourd'hui concernant la plateforme Prêt Santé ?", sender: 'agent', time: '10:00' }
+  ]);
+  const [inputText, setInputText] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+
+  const handleSendChat = (e) => {
+    e.preventDefault();
+    if (!inputText.trim()) return;
+
+    const userMsg = {
+      id: Date.now(),
+      text: inputText,
+      sender: 'user',
+      time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+    };
+    setChatMessages(prev => [...prev, userMsg]);
+    setInputText("");
+    setIsTyping(true);
+
+    setTimeout(() => {
+      setIsTyping(false);
+      const botMsg = {
+        id: Date.now() + 1,
+        text: "Merci pour votre message. Un agent de support de notre équipe technique a été alerté et va prendre le relais sous quelques minutes. N'hésitez pas à décrire tout problème avec précision.",
+        sender: 'agent',
+        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
+      };
+      setChatMessages(prev => [...prev, botMsg]);
+    }, 1500);
+  };
+
   const categories = [
     { id: 'startup', icon: 'ti-rocket', title: 'Guides de démarrage', text: "Maîtrisez l'interface de pilotage en moins de 5 minutes.", type: 'startup' },
     { id: 'support', icon: 'ti-headset', title: 'Support Technique', text: "Signaler une anomalie ou demander une assistance prioritaire.", type: 'support' },
@@ -1254,23 +1491,175 @@ const HelpCenterView = ({ handleSearchHelp, helpSearchQuery, showToast }) => {
     faq.a.toLowerCase().includes(helpSearchQuery.toLowerCase())
   );
 
+  // REDIRECTED PAGE 1: Guides de démarrage (Startup)
+  if (activeTopic === 'startup') {
+    return (
+      <div className="pilotage-view animate-fade-in">
+        <div className="view-header flex items-center justify-between mb-6">
+          <div className="title-group">
+            <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Guides de Démarrage</h1>
+            <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Documents explicatifs et tutoriels pour maîtriser la plateforme rapidement.</p>
+          </div>
+          <button className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-2 transition-all shadow-sm" onClick={() => setActiveTopic(null)}>
+            <i className="ti ti-arrow-left"></i> Retour à l'aide
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 glass-panel p-6 bg-white border border-slate-100 rounded-3xl shadow-sm space-y-6">
+            <div className="space-y-4">
+              <h3 className="text-xl font-bold text-slate-900 leading-snug tracking-[-0.01em]">Bienvenue sur Prêt Santé</h3>
+              <p className="text-slate-600 leading-relaxed tracking-[0.01em] mb-5 max-w-[70ch]">
+                La plateforme Prêt Santé relie de manière sécurisée les assurés, les établissements de santé et les partenaires bancaires pour offrir des financements médicaux instantanés.
+              </p>
+              <h4 className="text-lg font-bold text-slate-800 leading-snug tracking-[-0.01em]">Étape 1 : Effectuer une simulation</h4>
+              <p className="text-slate-600 leading-relaxed tracking-[0.01em] mb-5 max-w-[70ch]">
+                L'assuré sélectionne son type de soin, saisit le montant souhaité ainsi que la durée de remboursement sur le simulateur. La plateforme calcule instantanément la mensualité estimée au taux de base de 8.5%.
+              </p>
+              <h4 className="text-lg font-bold text-slate-800 leading-snug tracking-[-0.01em]">Étape 2 : Compléter le dossier KYC</h4>
+              <p className="text-slate-600 leading-relaxed tracking-[0.01em] mb-5 max-w-[70ch]">
+                Pour qu'une banque accepte d'octroyer le prêt, vous devez téléverser les justificatifs requis (CNI, bulletins de salaire, relevés bancaires récents, et devis clinique). L'analyse par notre algorithme IA-KYC accélère grandement le traitement.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            <div className="glass-panel p-6 bg-white border border-slate-100 rounded-3xl shadow-sm space-y-4">
+              <h4 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Vidéo d'Introduction</h4>
+              <div className="relative aspect-video bg-slate-950 rounded-2xl overflow-hidden flex items-center justify-center group shadow-md cursor-pointer" onClick={() => showToast("Lecture du tutoriel...")}>
+                <div className="w-12 h-12 bg-white/20 border border-white/40 backdrop-blur-md rounded-full flex items-center justify-center text-white text-xl shadow-lg transition-transform group-hover:scale-110">
+                  <i className="ti ti-player-play-filled"></i>
+                </div>
+                <div className="absolute bottom-3 left-3 bg-black/60 backdrop-blur-sm text-white px-2 py-0.5 rounded text-[10px] font-semibold">03:45 min</div>
+              </div>
+              <p className="text-xs text-slate-400 leading-normal tracking-[0.01em] mb-0 text-center">Tutoriel interactif d'initiation et de configuration du compte.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // REDIRECTED PAGE 2: Académie Prêt Santé (Webinars)
+  if (activeTopic === 'training') {
+    return (
+      <div className="pilotage-view animate-fade-in">
+        <div className="view-header flex items-center justify-between mb-6">
+          <div className="title-group">
+            <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Académie Prêt Santé</h1>
+            <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Tutoriels vidéos et webinaires avancés pour les administrateurs et banques partenaires.</p>
+          </div>
+          <button className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-2 transition-all shadow-sm" onClick={() => setActiveTopic(null)}>
+            <i className="ti ti-arrow-left"></i> Retour à l'aide
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="glass-panel p-5 bg-white border border-slate-100 rounded-3xl shadow-sm flex flex-col gap-4">
+            <div className="relative aspect-video bg-emerald-950/20 rounded-2xl flex items-center justify-center group cursor-pointer border border-emerald-900/10 shadow-sm" onClick={() => showToast("Lecture du webinaire...")}>
+              <span className="p-3 bg-emerald-650 bg-emerald-600 rounded-full text-white text-lg transition-all group-hover:scale-110 shadow-md"><i className="ti ti-player-play"></i></span>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-widest block bg-emerald-50 w-max px-2 py-0.5 rounded-full">WEBINAIRE ADMIN</span>
+              <h4 className="text-base font-bold text-slate-800 leading-snug">Gestion des Risques & Scoring IA</h4>
+              <p className="text-xs text-slate-500 leading-relaxed tracking-[0.01em] max-w-[70ch] mb-0">Apprenez à interpréter le score d'audit KYC et les alertes automatisées.</p>
+            </div>
+          </div>
+
+          <div className="glass-panel p-5 bg-white border border-slate-100 rounded-3xl shadow-sm flex flex-col gap-4">
+            <div className="relative aspect-video bg-blue-950/20 rounded-2xl flex items-center justify-center group cursor-pointer border border-blue-900/10 shadow-sm" onClick={() => showToast("Lecture du guide...")}>
+              <span className="p-3 bg-blue-600 rounded-full text-white text-lg transition-all group-hover:scale-110 shadow-md"><i className="ti ti-player-play"></i></span>
+            </div>
+            <div className="space-y-1">
+              <span className="text-[9px] font-bold text-blue-700 uppercase tracking-widest block bg-blue-50 w-max px-2 py-0.5 rounded-full font-mono">TUTORIEL VIDEO</span>
+              <h4 className="text-base font-bold text-slate-800 leading-snug">Configuration des Taux d'Intérêts</h4>
+              <p className="text-xs text-slate-500 leading-relaxed tracking-[0.01em] max-w-[70ch] mb-0">Comment ajuster les grilles de taux partenaires et gérer l'échéancier des versements.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // REDIRECTED PAGE 3: Support Technique (Live Chat)
+  if (activeTopic === 'support') {
+    return (
+      <div className="pilotage-view animate-fade-in">
+        <div className="view-header flex items-center justify-between mb-6">
+          <div className="title-group">
+            <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Support Technique en Ligne</h1>
+            <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Discutez en temps réel avec notre équipe de support informatique et d'audit.</p>
+          </div>
+          <button className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-2 transition-all shadow-sm" onClick={() => setActiveTopic(null)}>
+            <i className="ti ti-arrow-left"></i> Retour
+          </button>
+        </div>
+
+        <div className="max-w-2xl mx-auto glass-panel bg-white border border-slate-100 rounded-3xl shadow-lg overflow-hidden flex flex-col h-[500px]">
+          <div className="bg-emerald-900 text-white px-6 py-4 flex items-center justify-between shadow-sm">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-emerald-800 border-2 border-emerald-400 flex items-center justify-center"><i className="ti ti-headset text-xl"></i></div>
+              <div className="space-y-0.5">
+                <h4 className="text-sm font-bold text-white mb-0">Assistance Prêt Santé</h4>
+                <span className="text-[10px] text-emerald-300 font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Conseiller en ligne
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-4 bg-slate-50">
+            {chatMessages.map(msg => (
+              <div key={msg.id} className={`flex flex-col max-w-[80%] ${msg.sender === 'user' ? 'self-end items-end' : 'self-start items-start'}`}>
+                <div className={`p-3.5 rounded-2xl text-xs leading-relaxed tracking-wide ${msg.sender === 'user' ? 'bg-emerald-600 text-white rounded-tr-none' : 'bg-white text-slate-800 border border-slate-200/60 rounded-tl-none shadow-sm'}`}>
+                  {msg.text}
+                </div>
+                <span className="text-[9px] text-slate-400 mt-1 font-semibold px-1">{msg.time}</span>
+              </div>
+            ))}
+            {isTyping && (
+              <div className="self-start flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl rounded-tl-none border border-slate-200/60 shadow-sm">
+                <div className="flex gap-1">
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-450 bg-slate-400 animate-bounce"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-450 bg-slate-400 animate-bounce delay-100"></div>
+                  <div className="w-1.5 h-1.5 rounded-full bg-slate-450 bg-slate-400 animate-bounce delay-200"></div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <form onSubmit={handleSendChat} className="p-4 border-t border-slate-100 bg-white flex gap-3 items-center">
+            <input 
+              type="text" 
+              placeholder="Écrivez votre message ici..." 
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:bg-white"
+            />
+            <button type="submit" className="w-10 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center justify-center shadow-md shadow-emerald-600/10 transition-all"><i className="ti ti-send text-base"></i></button>
+          </form>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="pilotage-view animate-fade-in">
       <div className="view-header">
         <div className="header-text">
-          <h1>Centre d'Aide & Support</h1>
-          <p className="subtitle">Besoin d'aide ? Nos experts sont là pour vous accompagner.</p>
+          <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Centre d'Aide & Support</h1>
+          <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Besoin d'aide ? Nos experts sont là pour vous accompagner.</p>
         </div>
       </div>
       <div className="help-container">
         <div className="glass-panel-premium support-hero-premium">
           <div className="hero-content">
             <i className="ti ti-help-hexagon hero-icon"></i>
-            <h1>Comment pouvons-nous vous aider ?</h1>
-            <p>Recherchez dans notre base de connaissances ou contactez un expert.</p>
+            <h1 className="text-white leading-snug tracking-[-0.02em]">Comment pouvons-nous vous aider ?</h1>
+            <p className="text-slate-200/90 leading-normal mb-0">Recherchez dans notre base de connaissances ou contactez un expert.</p>
           </div>
           <div className="search-box-premium">
-            <i className="ti ti-search"></i>
+            <i className="ti ti-search text-white"></i>
             <input
               type="text"
               placeholder="Guides, procédures, assistance technique..."
@@ -1283,39 +1672,51 @@ const HelpCenterView = ({ handleSearchHelp, helpSearchQuery, showToast }) => {
         <div className="help-categories-premium">
           {filteredCategories.length > 0 ? (
             filteredCategories.map(cat => (
-              <div className="glass-panel-premium help-card-premium" key={cat.id} onClick={() => showToast(`Chargement : ${cat.title}`)}>
-                <div className={`h-icon-wrapper ${cat.type}`}><i className={`ti ${cat.icon}`}></i></div>
-                <div className="h-body">
-                  <h4>{cat.title}</h4>
-                  <p>{cat.text}</p>
+              <div 
+                className="glass-panel-premium help-card-premium flex items-center gap-6 p-6 cursor-pointer hover:-translate-y-2 border border-slate-100 hover:border-emerald-500 transition-all rounded-3xl" 
+                key={cat.id} 
+                onClick={() => {
+                  if (cat.id === 'startup' || cat.id === 'training' || cat.id === 'support') {
+                    setActiveTopic(cat.id);
+                  } else {
+                    showToast(`Chargement : ${cat.title}`);
+                  }
+                }}
+              >
+                <div className={`h-icon-wrapper w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${cat.type === 'startup' ? 'bg-blue-50 text-blue-600' : cat.type === 'support' ? 'bg-emerald-50 text-emerald-600' : cat.type === 'security' ? 'bg-orange-50 text-orange-600' : 'bg-slate-100 text-slate-650'}`}>
+                  <i className={`ti ${cat.icon}`}></i>
                 </div>
-                <i className="ti ti-chevron-right"></i>
+                <div className="h-body flex-1 min-w-0">
+                  <h4 className="text-base font-bold text-slate-800 leading-snug mb-1">{cat.title}</h4>
+                  <p className="text-xs text-slate-500 leading-relaxed tracking-[0.01em] mb-0">{cat.text}</p>
+                </div>
+                <i className="ti ti-chevron-right text-slate-350"></i>
               </div>
             ))
           ) : (
-            <div className="empty-search-help">
-              <i className="ti ti-search-off" style={{ fontSize: '48px', opacity: 0.3, marginBottom: '15px' }}></i>
-              <p>Aucun guide ou FAQ ne correspond à "<b>{helpSearchQuery}</b>"</p>
+            <div className="empty-search-help text-center py-8">
+              <i className="ti ti-search-off text-5xl text-slate-300 mb-4 block"></i>
+              <p className="text-sm text-slate-600 leading-relaxed tracking-[0.01em] mb-4">Aucun guide ou FAQ ne correspond à "<b>{helpSearchQuery}</b>"</p>
               <button className="btn-premium secondary" onClick={() => handleSearchHelp("")}>Réinitialiser la recherche</button>
             </div>
           )}
         </div>
 
-        <div className="glass-panel-premium faq-section-premium">
-          <div className="section-title">
-            <i className="ti ti-list-details"></i>
-            <h3>Questions Fréquentes</h3>
+        <div className="glass-panel-premium faq-section-premium p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
+          <div className="section-title flex items-center gap-3">
+            <i className="ti ti-list-details text-emerald-700 text-xl"></i>
+            <h3 className="text-lg font-bold text-slate-800">Questions Fréquentes</h3>
           </div>
-          <div className="faq-grid">
+          <div className="faq-grid grid grid-cols-1 md:grid-cols-2 gap-6">
             {filteredFaqs.length > 0 ? (
               filteredFaqs.map((faq, idx) => (
-                <div className="faq-card" key={idx} onClick={() => showToast(`Détails FAQ : ${faq.tag}`)}>
-                  <strong>{faq.q}</strong>
-                  <p>{faq.a}</p>
+                <div className="faq-card p-5 bg-slate-50 border border-slate-100 rounded-2xl hover:bg-white transition-all shadow-sm flex flex-col gap-2" key={idx} onClick={() => showToast(`Détails FAQ : ${faq.tag}`)}>
+                  <strong className="text-sm font-bold text-slate-800 leading-snug">{faq.q}</strong>
+                  <p className="text-xs text-slate-500 leading-relaxed tracking-[0.01em] mb-0">{faq.a}</p>
                 </div>
               ))
             ) : (
-              <p className="no-faq-match">Aucune question fréquente ne correspond à votre recherche.</p>
+              <p className="no-faq-match text-xs text-slate-400">Aucune question fréquente ne correspond à votre recherche.</p>
             )}
           </div>
         </div>
