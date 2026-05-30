@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { User, IdCard, FileText, BuildingBank, NotebookMedical, Settings, Check, Upload, ChevronRight } from 'lucide-react-native';
+import { User, IdCard, FileText, Building2, NotebookText, Settings, Check, Upload, ChevronRight } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -44,14 +44,14 @@ export default function ProfileScreen() {
           colors={colors}
         />
         <MenuItem 
-          icon={<BuildingBank size={20} color="#854F0B" />}
+          icon={<Building2 size={20} color="#854F0B" />}
           title="Relevé bancaire"
           subtitle="Non fourni · En attente"
           status="upload"
           colors={colors}
         />
         <MenuItem 
-          icon={<NotebookMedical size={20} color="#854F0B" />}
+          icon={<NotebookText size={20} color="#854F0B" />}
           title="Devis médical"
           subtitle="Non fourni · En attente"
           status="upload"

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView, TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Tooth, Baby, Activity, Plus, ArrowRight, ChevronDown } from 'lucide-react-native';
+import { Bandage, Baby, Activity, Plus, ArrowRight, ChevronDown } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 import Slider from '@react-native-community/slider';
@@ -36,7 +36,7 @@ export default function LoanRequestScreen() {
           <View style={styles.typeGrid}>
             <TypeCard 
               id={1} 
-              icon={<Tooth size={24} color={selectedType === 1 ? colors.primary : '#1D9E75'} />} 
+              icon={<Bandage size={24} color={selectedType === 1 ? colors.primary : '#1D9E75'} />} 
               label="Prothèse dentaire" 
               selected={selectedType === 1} 
               onPress={() => setSelectedType(1)}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Plus, Building2, FileUp, Calendar, Check, Tooth, Activity, Stethoscope } from 'lucide-react-native';
+import { Plus, Building2, FileUp, Calendar, Check, Bandage, Activity, Stethoscope } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -66,7 +66,7 @@ export default function DashboardScreen() {
         <Text style={styles.sectionTitle}>Activité récente</Text>
         <View style={styles.activityList}>
           <ActivityItem 
-            icon={<Tooth size={18} color={colors.secondary} />}
+            icon={<Bandage size={18} color={colors.secondary} />}
             iconBg={colors.lightGreen}
             title="Prothèse dentaire"
             subtitle="Clinique Avicenne · 15 mai"
