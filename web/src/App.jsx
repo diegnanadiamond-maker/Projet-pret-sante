@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import './App.css';
-import PretSanteMobile from './components/PretSanteMobile';
+import sgciLogo from './assets/banks/sgci.png';
+import bniLogo from './assets/banks/bni.png';
+import ecobankLogo from './assets/banks/ecobank.png';
 
 // --- MOCK DATA ---
 const MOCK_USERS = [
@@ -11,16 +13,19 @@ const MOCK_USERS = [
 ];
 
 const MOCK_BANKS = [
-  { id: 1, name: 'SGCI', fullName: 'Société Générale Côte d\'Ivoire', activeLoans: 145, rate: '7.9%', liquidity: 'Haute', status: 'Online', processingTime: '2.4 jours' },
-  { id: 2, name: 'BNI', fullName: 'Banque Nationale d\'Investissement', activeLoans: 89, rate: '9.2%', liquidity: 'Moyenne', status: 'Online', processingTime: '3.1 jours' },
-  { id: 3, name: 'Ecobank', fullName: 'Ecobank Côte d\'Ivoire', activeLoans: 210, rate: '10.5%', liquidity: 'Très Haute', status: 'Offline', processingTime: '1.8 jours' },
+  { id: 1, name: 'SGCI', fullName: 'Société Générale Côte d\'Ivoire', activeLoans: 145, rate: '7.9%', liquidity: 'Haute', status: 'Online', processingTime: '2.4 jours', logo: sgciLogo },
+  { id: 2, name: 'BNI', fullName: 'Banque Nationale d\'Investissement', activeLoans: 89, rate: '9.2%', liquidity: 'Moyenne', status: 'Online', processingTime: '3.1 jours', logo: bniLogo },
+  { id: 3, name: 'Ecobank', fullName: 'Ecobank Côte d\'Ivoire', activeLoans: 210, rate: '10.5%', liquidity: 'Très Haute', status: 'Offline', processingTime: '1.8 jours', logo: ecobankLogo },
 ];
 
 const MOCK_APPLICATIONS = [
   { id: 'APP-001', user: 'Awa Koné', amount: '120 000 FCFA', care: 'Bilan de santé', date: '16 Mai 2024', status: 'Nouveau', risk: 'Faible', docs: ['CNI', 'Salaire', 'RIB'], scoring: 82 },
   { id: 'APP-002', user: 'Jean Koffi', amount: '450 000 FCFA', care: 'Dentaire', date: '15 Mai 2024', status: 'En examen', risk: 'Moyen', docs: ['CNI', 'Salaire'], scoring: 64 },
   { id: 'APP-003', user: 'Saliou Diop', amount: '900 000 FCFA', care: 'Accouchement', date: '14 Mai 2024', status: 'Vérification', risk: 'Faible', docs: ['CNI', 'Salaire', 'RIB', 'Devis'], scoring: 91 },
+  { id: 'APP-004', user: 'Fatou Diallo', amount: '600 000 FCFA', care: 'Chirurgie', date: '13 Mai 2024', status: 'Nouveau', risk: 'Élevé', docs: ['CNI'], scoring: 41 },
 ];
+
+const RISK_COLORS = { 'Faible': '#10b981', 'Moyen': '#f59e0b', 'Élevé': '#ef4444' };
 
 const MOCK_LOGS = [
   { id: 1, action: 'Nouvelle Simulation', user: 'Kouamé Adou', time: '14:20', type: 'System' },
@@ -32,15 +37,10 @@ const MOCK_LOGS = [
 function App() {
   // --- AUTH & GLOBAL STATE ---
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState(null); // 'user', 'admin', 'bank'
+  const [userRole, setUserRole] = useState(null); // 'admin', 'bank'
   const [activeTab, setActiveTab] = useState('dashboard');
   const [toast, setToast] = useState(null);
 
-  // --- USER SPECIFIC STATE ---
-  const [careType, setCareType] = useState(1);
-  const [amount, setAmount] = useState(250000);
-  const [duration, setDuration] = useState(12);
-  const [kycDocs, setKycDocs] = useState({ cni: true, salaire: true, releve: false, devis: false });
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('pretSanteDarkMode');
     return saved === null ? false : saved === 'true';
@@ -67,29 +67,12 @@ function App() {
     setTimeout(() => setToast(prev => prev === text ? null : prev), 4000);
   };
 
-  const formatFCFA = (val) => new Intl.NumberFormat('fr-FR').format(Math.round(val)) + ' FCFA';
-
-  const calculateLoanSim = (principal, months, annualRate = 0.085) => {
-    const r = annualRate / 12;
-    const m = principal * r * Math.pow(1 + r, months) / (Math.pow(1 + r, months) - 1);
-    return { monthly: Math.round(m), total: Math.round(m * months), rate: annualRate * 100 };
-  };
-
-  const currentSim = calculateLoanSim(amount, duration);
-  const kycPercentage = Math.round((Object.values(kycDocs).filter(Boolean).length / 4) * 100);
-
   // --- ACTIONS ---
   const handleLogin = (role) => {
     setUserRole(role);
     setIsLoggedIn(true);
     setActiveTab('dashboard');
     showToast(`Session pilotage active : ${role.toUpperCase()}`);
-  };
-
-  const handleRoleSwitch = (role) => {
-    setUserRole(role);
-    setActiveTab('dashboard');
-    showToast(`Mode ${role.toUpperCase()} activé`);
   };
 
   const handleLogout = () => {
@@ -116,7 +99,7 @@ function App() {
   // --- DATA STATE (to allow interactions) ---
   const [users, setUsers] = useState(MOCK_USERS);
   const [banks, setBanks] = useState(MOCK_BANKS);
-  const [logs, setLogs] = useState(MOCK_LOGS);
+  const logs = MOCK_LOGS;
 
   // --- HANDLERS ---
   const handleRefresh = () => {
@@ -130,20 +113,6 @@ function App() {
 
   const handleAddUser = () => setActiveModal('user');
   const handleNewPartner = () => setActiveModal('bank');
-
-  const handlePurgeLogs = () => {
-    if (window.confirm("Voulez-vous vraiment purger tous les journaux système ?")) {
-      setLogs([]);
-      showToast("Journaux système purgés");
-    }
-  };
-
-  const handleExportCSV = () => {
-    showToast("Préparation de l'export CSV...");
-    setTimeout(() => {
-      showToast("Export terminé (pret_sante_logs.csv)");
-    }, 2000);
-  };
 
   const handleGlobalReport = () => {
     setActiveModal('report');
@@ -181,11 +150,6 @@ function App() {
     b.fullName.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredLogs = logs.filter(l =>
-    l.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    l.user.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   // --- MAIN RENDER ---
   if (!isLoggedIn) return <LoginView onLogin={handleLogin} />;
 
@@ -209,63 +173,6 @@ function App() {
       />
 
       <main className="app-main-content">
-        <header className="top-bar">
-          <div className="search-box glass-panel-premium">
-            <i className="ti ti-search"></i>
-            <input
-              type="text"
-              placeholder="Recherche globale (Prêts, Assurés, Banques...)"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && showToast(`Résultats pour : ${searchQuery}`)}
-            />
-          </div>
-
-          <div className="top-actions">
-            <div className="pilotage-control glass-panel">
-              <div className="control-header">
-                <i className="ti ti-adjustments-horizontal"></i>
-                <span>Pilotage Système</span>
-              </div>
-              <div className="role-switcher-tabs">
-                <button
-                  className={`role-tab ${userRole === 'user' ? 'active' : ''}`}
-                  onClick={() => { handleRoleSwitch('user'); showToast("Mode Client activé"); }}
-                >
-                  <i className="ti ti-user"></i>
-                  <span>Client</span>
-                </button>
-                <button
-                  className={`role-tab ${userRole === 'bank' ? 'active' : ''}`}
-                  onClick={() => { handleRoleSwitch('bank'); showToast("Mode Banque activé"); }}
-                >
-                  <i className="ti ti-building-bank"></i>
-                  <span>Banque</span>
-                </button>
-                <button
-                  className={`role-tab ${userRole === 'admin' ? 'active' : ''}`}
-                  onClick={() => { handleRoleSwitch('admin'); showToast("Mode Admin activé"); }}
-                >
-                  <i className="ti ti-shield-check"></i>
-                  <span>Admin</span>
-                </button>
-              </div>
-            </div>
-
-            <div className="divider"></div>
-
-            <button className="icon-btn" onClick={() => showToast("Notifications consultées")}>
-              <i className="ti ti-bell"></i>
-              <span className="dot"></span>
-            </button>
-
-            <div className="system-status">
-              <span className="status-dot online"></span>
-              <span className="status-text">API Cloud Online</span>
-            </div>
-          </div>
-        </header>
-
         <div className="content-container">
           {activeTab === 'dashboard' && (
             userRole === 'admin' ? (
@@ -274,16 +181,15 @@ function App() {
                 isRefreshing={isRefreshing}
                 handleGlobalReport={handleGlobalReport}
                 showToast={showToast}
-                logs={logs.filter(l => l.action.toLowerCase().includes(searchQuery.toLowerCase()) || l.user.toLowerCase().includes(searchQuery.toLowerCase()))}
-                banks={banks.filter(b => b.name.toLowerCase().includes(searchQuery.toLowerCase()) || b.fullName.toLowerCase().includes(searchQuery.toLowerCase()))}
+                logs={logs}
+                banks={banks}
               />
-            ) : userRole === 'bank' ? (
-              <BankDashboard showToast={showToast} />
             ) : (
-              <UserDashboard navigateToTab={navigateToTab} kycPercentage={kycPercentage} showToast={showToast} />
+              <BankOverviewView navigateToTab={navigateToTab} />
             )
           )}
-          {(activeTab === 'requests' || activeTab === 'risk') && <BankDashboard showToast={showToast} />}
+          {activeTab === 'requests' && <BankRequestsView showToast={showToast} />}
+          {activeTab === 'risk' && <BankRiskView />}
           {activeTab === 'users' && <UsersListView
             users={filteredUsers}
             searchQuery={searchQuery}
@@ -299,24 +205,6 @@ function App() {
             handleNewPartner={handleNewPartner}
             showToast={showToast}
           />}
-          {activeTab === 'simulateur' && <SimulationView
-            careType={careType}
-            setCareType={setCareType}
-            amount={amount}
-            setAmount={setAmount}
-            duration={duration}
-            setDuration={setDuration}
-            currentSim={currentSim}
-            formatFCFA={formatFCFA}
-            navigateToTab={navigateToTab}
-            showToast={showToast}
-          />}
-          {activeTab === 'documents' && <DocumentsView
-            kycDocs={kycDocs}
-            setKycDocs={setKycDocs}
-            showToast={showToast}
-          />}
-          {activeTab === 'logs' && <LogsListView logs={filteredLogs} handlePurgeLogs={handlePurgeLogs} handleExportCSV={handleExportCSV} showToast={showToast} />}
           {activeTab === 'help' && <HelpCenterView handleSearchHelp={handleSearchHelp} helpSearchQuery={helpSearchQuery} showToast={showToast} />}
           {activeTab === 'settings' && <SettingsView
             isDarkMode={isDarkMode}
@@ -328,7 +216,7 @@ function App() {
           />}
 
           {/* Fallback for tabs in development */}
-          {(activeTab !== 'dashboard' && activeTab !== 'simulateur' && activeTab !== 'documents' && activeTab !== 'users' && activeTab !== 'banks' && activeTab !== 'logs' && activeTab !== 'help' && activeTab !== 'settings' && activeTab !== 'requests' && activeTab !== 'risk') && (
+          {(activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'banks' && activeTab !== 'help' && activeTab !== 'settings' && activeTab !== 'requests' && activeTab !== 'risk') && (
             <div className="empty-state animate-fade-in">
               <i className="ti ti-tool"></i>
               <h2>Module en cours de déploiement</h2>
@@ -563,7 +451,7 @@ const LoginView = ({ onLogin }) => (
           <div className="role-card-icon"><i className="ti ti-shield-lock"></i></div>
           <div className="role-card-body">
             <h3>Super Administrateur</h3>
-            <p>Contrôle total, monitoring réseau et logs de sécurité.</p>
+            <p>Contrôle total, monitoring réseau et gestion des partenaires.</p>
           </div>
           <div className="role-card-arrow"><i className="ti ti-chevron-right"></i></div>
         </div>
@@ -573,15 +461,6 @@ const LoginView = ({ onLogin }) => (
           <div className="role-card-body">
             <h3>Établissement Bancaire</h3>
             <p>Gestion des risques, validation KYC et déblocage de fonds.</p>
-          </div>
-          <div className="role-card-arrow"><i className="ti ti-chevron-right"></i></div>
-        </div>
-
-        <div className="role-card user" onClick={() => onLogin('user')}>
-          <div className="role-card-icon"><i className="ti ti-user-circle"></i></div>
-          <div className="role-card-body">
-            <h3>Espace Client</h3>
-            <p>Suivi de santé financière, simulations et formalités.</p>
           </div>
           <div className="role-card-arrow"><i className="ti ti-chevron-right"></i></div>
         </div>
@@ -619,9 +498,6 @@ const Sidebar = ({ userRole, activeTab, navigateToTab, handleLogout }) => (
             <button className={`nav-item ${activeTab === 'banks' ? 'active' : ''}`} onClick={() => navigateToTab('banks')}>
               <i className="ti ti-building-community"></i> Réseau Bancaire
             </button>
-            <button className={`nav-item ${activeTab === 'logs' ? 'active' : ''}`} onClick={() => navigateToTab('logs')}>
-              <i className="ti ti-history"></i> Logs Système
-            </button>
           </>
         )}
         {userRole === 'bank' && (
@@ -631,16 +507,6 @@ const Sidebar = ({ userRole, activeTab, navigateToTab, handleLogout }) => (
             </button>
             <button className={`nav-item ${activeTab === 'risk' ? 'active' : ''}`} onClick={() => navigateToTab('risk')}>
               <i className="ti ti-chart-dots"></i> Analyse de Risque
-            </button>
-          </>
-        )}
-        {userRole === 'user' && (
-          <>
-            <button className={`nav-item ${activeTab === 'simulateur' ? 'active' : ''}`} onClick={() => navigateToTab('simulateur')}>
-              <i className="ti ti-calculator"></i> Simulateur
-            </button>
-            <button className={`nav-item ${activeTab === 'documents' ? 'active' : ''}`} onClick={() => navigateToTab('documents')}>
-              <i className="ti ti-file-certificate"></i> Mes Formalités
             </button>
           </>
         )}
@@ -659,7 +525,7 @@ const Sidebar = ({ userRole, activeTab, navigateToTab, handleLogout }) => (
       <div className="user-profile-summary">
         <div className="avatar-mini">{userRole ? userRole[0].toUpperCase() : 'A'}</div>
         <div className="u-info">
-          <strong>{userRole === 'admin' ? 'Super Admin' : userRole === 'bank' ? 'SGCI Ops' : 'K. Adou'}</strong>
+          <strong>{userRole === 'admin' ? 'Super Admin' : 'SGCI Ops'}</strong>
           <span>{userRole ? userRole.toUpperCase() : ''}</span>
         </div>
         <button className="btn-logout-icon" onClick={handleLogout} title="Déconnexion"><i className="ti ti-logout"></i></button>
@@ -726,7 +592,7 @@ const AdminDashboard = ({ handleRefresh, isRefreshing, handleGlobalReport, showT
         <div className="logs-timeline enterprise">
           {logs.slice(0, 5).map(log => (
             <div className="log-entry-premium" key={log.id}>
-              <div className={`log-type-indicator ${log.type.toLowerCase()}`}></div>
+              <div className={`log-avatar ${log.type.toLowerCase()}`}>{log.user.charAt(0)}</div>
               <div className="log-content">
                 <div className="log-row">
                   <span className="log-action-text">{log.action}</span>
@@ -923,7 +789,12 @@ const BanksListView = ({ banks, handleNewPartner, showToast }) => (
           <tbody>
             {banks.map(bank => (
               <tr key={bank.id}>
-                <td className="font-bold">{bank.name}</td>
+                <td className="font-bold">
+                  <div className="bank-name-cell">
+                    <img src={bank.logo} alt={bank.name} className="bank-logo-mini" />
+                    {bank.name}
+                  </div>
+                </td>
                 <td>{bank.fullName}</td>
                 <td>{bank.activeLoans}</td>
                 <td className="font-mono text-brand">{bank.rate}</td>
@@ -943,45 +814,116 @@ const BanksListView = ({ banks, handleNewPartner, showToast }) => (
   </div>
 );
 
-const LogsListView = ({ logs, handlePurgeLogs, handleExportCSV }) => (
-  <div className="pilotage-view animate-fade-in">
-    <div className="view-header">
-      <div className="title-group">
-        <h1>Logs de Sécurité & Activité</h1>
-        <p className="subtitle">Traçabilité complète des actions du système en temps réel</p>
+
+const BankOverviewView = ({ navigateToTab }) => {
+  const pendingCount = MOCK_APPLICATIONS.length;
+  const priorityApps = [...MOCK_APPLICATIONS].sort((a, b) => b.scoring - a.scoring).slice(0, 2);
+  const riskCounts = { Faible: 0, Moyen: 0, Élevé: 0 };
+  MOCK_APPLICATIONS.forEach(a => { riskCounts[a.risk] += 1; });
+
+  return (
+    <div className="pilotage-view animate-fade-in">
+      <div className="view-header">
+        <div className="title-group">
+          <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Vue d'ensemble · SGCI</h1>
+          <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Aperçu de votre activité de financement santé</p>
+        </div>
+        <div className="header-actions">
+          <button className="btn-premium primary" onClick={() => navigateToTab('requests')}>
+            <i className="ti ti-file-description"></i> Voir les demandes
+          </button>
+        </div>
       </div>
-      <div className="header-actions">
-        <button className="btn-premium secondary" onClick={handlePurgeLogs}><i className="ti ti-trash"></i> Purger</button>
-        <button className="btn-premium primary" onClick={handleExportCSV}><i className="ti ti-file-export"></i> Exporter CSV</button>
+
+      <div className="stats-strip">
+        <div className="mini-stat">
+          <div className="m-icon-mini system"><i className="ti ti-file-description"></i></div>
+          <div className="m-data"><span>Dossiers en attente</span><strong>{pendingCount}</strong><em>À traiter</em></div>
+        </div>
+        <div className="mini-stat">
+          <div className="m-icon-mini finance"><i className="ti ti-cash"></i></div>
+          <div className="m-data"><span>Décaissé ce mois</span><strong>570k</strong><em className="up">+8.2%</em></div>
+        </div>
+        <div className="mini-stat">
+          <div className="m-icon-mini bank"><i className="ti ti-percentage"></i></div>
+          <div className="m-data"><span>Taux moyen accordé</span><strong>8.5%</strong><em>Stable</em></div>
+        </div>
+        <div className="mini-stat">
+          <div className="m-icon-mini speed"><i className="ti ti-clock-hour-4"></i></div>
+          <div className="m-data"><span>Délai moyen</span><strong>2.4j</strong><em className="up">Rapide</em></div>
+        </div>
       </div>
-    </div>
-    <div className="glass-panel logs-list-full-container">
-      {logs.map(log => (
-        <div className="log-entry-premium" key={log.id}>
-          <div className={`log-type-indicator ${log.type.toLowerCase()}`}></div>
-          <div className="log-content-wrapper">
-            <div className="log-main">
-              <div className="log-action-text">{log.action}</div>
-              <div className="log-user-text">Initié par <b>{log.user}</b></div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
+        <div className="glass-panel-premium rounded-3xl p-6 border border-slate-100 shadow-sm">
+          <div className="flex items-center justify-between mb-5">
+            <h3 className="text-lg font-bold text-slate-800">Dossiers prioritaires</h3>
+            <button className="text-xs font-bold text-blue-600 hover:text-blue-700" onClick={() => navigateToTab('requests')}>Voir tout</button>
+          </div>
+          <div className="flex flex-col gap-3">
+            {priorityApps.map(app => (
+              <div key={app.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 cursor-pointer hover:bg-slate-100/70 transition-all" onClick={() => navigateToTab('requests')}>
+                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-700 text-sm">{app.user[0]}</div>
+                <div className="flex-1 min-w-0">
+                  <strong className="text-sm font-bold text-slate-800 block">{app.user}</strong>
+                  <span className="text-xs text-slate-500">{app.care} · {app.amount}</span>
+                </div>
+                <div className="w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-bold text-slate-700" style={{ borderColor: RISK_COLORS[app.risk] }}>
+                  {app.scoring}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-6">
+          <div className="glass-panel-premium rounded-3xl p-6 border border-slate-100 shadow-sm cursor-pointer hover:-translate-y-0.5 transition-all" onClick={() => navigateToTab('risk')}>
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Répartition des risques</h3>
+            <div className="flex flex-col gap-3">
+              {Object.entries(riskCounts).map(([risk, count]) => (
+                <div key={risk} className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full" style={{ background: RISK_COLORS[risk] }}></span>
+                    <span className="text-xs font-semibold text-slate-600">Risque {risk}</span>
+                  </div>
+                  <strong className="text-sm font-bold text-slate-800">{count}</strong>
+                </div>
+              ))}
             </div>
-            <div className="log-meta">
-              <div className="log-time-text">{log.time}</div>
-              <span className={`log-badge ${log.type.toLowerCase()}`}>{log.type}</span>
+            <p className="text-[11px] text-slate-400 mt-4 mb-0">Cliquez pour voir l'analyse complète →</p>
+          </div>
+
+          <div className="glass-panel-premium rounded-3xl p-6 border border-slate-100 shadow-sm">
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Décaissements récents</h3>
+            <div className="flex flex-col gap-3">
+              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-xs font-semibold text-slate-700">S. Touré</span>
+                <strong className="text-xs font-bold text-blue-700">450k FCFA</strong>
+              </div>
+              <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
+                <span className="text-xs font-semibold text-slate-700">M. Keita</span>
+                <strong className="text-xs font-bold text-blue-700">120k FCFA</strong>
+              </div>
             </div>
           </div>
         </div>
-      ))}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
-const BankDashboard = ({ showToast }) => {
+const BankRequestsView = ({ showToast }) => {
   const [activeModal, setActiveModal] = useState(null); // null, 'contract', 'complement'
   const [selectedApp, setSelectedApp] = useState(MOCK_APPLICATIONS[0]);
   const [missingDocs, setMissingDocs] = useState({ releve: true, devis: true, ocr: false });
   const [customComment, setCustomComment] = useState("");
+  const [riskFilter, setRiskFilter] = useState('Tout');
 
-  const handleGenerateContract = () => {
+  const handleGenerateContract = (app = selectedApp) => {
+    if (!app?.docs?.includes('Devis')) {
+      showToast('Facture pro-forma manquante : impossible de générer le contrat sans ce justificatif.');
+      return;
+    }
     setActiveModal('contract');
   };
 
@@ -989,16 +931,18 @@ const BankDashboard = ({ showToast }) => {
     setActiveModal('complement');
   };
 
+  const visibleApplications = riskFilter === 'Tout' ? MOCK_APPLICATIONS : MOCK_APPLICATIONS.filter(a => a.risk === riskFilter);
+
   return (
     <div className="pilotage-view animate-fade-in">
       <div className="view-header">
         <div className="title-group">
-          <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Gestionnaire de Crédit · SGCI</h1>
+          <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Demandes en cours · SGCI</h1>
           <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Traitement des formalités et déblocage de fonds</p>
         </div>
         <div className="header-actions">
           <span className="status-pill active-glow">
-            <i className="ti ti-antenna mr-2 text-emerald-600"></i> Connecté à Risk-Ops
+            <i className="ti ti-antenna mr-2 text-blue-600"></i> Connecté à Risk-Ops
           </span>
         </div>
       </div>
@@ -1008,23 +952,25 @@ const BankDashboard = ({ showToast }) => {
           <div className="section-header-premium mb-6">
             <h3 className="text-xl font-bold text-slate-800 leading-snug tracking-[-0.01em]">Dossiers en attente de décision</h3>
             <div className="filter-group">
-              <button className="filter-btn active">Tout</button>
-              <button className="filter-btn" onClick={() => showToast("Filtre appliqué")}>Risque Faible</button>
-              <button className="filter-btn" onClick={() => showToast("Filtre appliqué")}>Risque Moyen</button>
+              {['Tout', 'Faible', 'Moyen', 'Élevé'].map(f => (
+                <button key={f} className={`filter-btn ${riskFilter === f ? 'active' : ''}`} onClick={() => setRiskFilter(f)}>
+                  {f === 'Tout' ? 'Tout' : `Risque ${f}`}
+                </button>
+              ))}
             </div>
           </div>
           <div className="requests-vertical-list flex flex-col gap-4">
-            {MOCK_APPLICATIONS.map(app => (
-              <div 
-                className={`request-strip-premium glass-panel w-full flex items-center gap-6 p-5 rounded-2xl cursor-pointer hover:bg-slate-50 transition-all border ${selectedApp?.id === app.id ? 'border-emerald-500 bg-emerald-50/10' : 'border-transparent'}`} 
+            {visibleApplications.map(app => (
+              <div
+                className={`request-strip-premium glass-panel w-full flex items-center gap-6 p-5 rounded-2xl cursor-pointer hover:bg-slate-50 transition-all border ${selectedApp?.id === app.id ? 'border-blue-500 bg-blue-50/10' : 'border-transparent'}`}
                 key={app.id}
                 onClick={() => setSelectedApp(app)}
               >
                 <div className="r-avatar-group flex items-center relative">
                   <div className="r-avatar-main w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-700">{app.user[0]}</div>
-                  <div className="r-risk-dot w-3 h-3 rounded-full absolute bottom-0 right-0 border-2 border-white" style={{ background: app.risk === 'Faible' ? '#10b981' : '#f59e0b' }}></div>
+                  <div className="r-risk-dot w-3 h-3 rounded-full absolute bottom-0 right-0 border-2 border-white" style={{ background: RISK_COLORS[app.risk] }}></div>
                 </div>
-                
+
                 <div className="r-main-info flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <strong className="text-sm font-bold text-slate-800 tracking-tight">{app.user}</strong>
@@ -1038,7 +984,7 @@ const BankDashboard = ({ showToast }) => {
                 </div>
 
                 <div className="r-scoring-premium flex flex-col items-center gap-1">
-                  <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold text-slate-700" style={{ borderColor: app.scoring > 80 ? '#10b981' : '#f59e0b' }}>
+                  <div className="w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold text-slate-700" style={{ borderColor: RISK_COLORS[app.risk] }}>
                     {app.scoring}
                   </div>
                   <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Score Risk</span>
@@ -1052,11 +998,11 @@ const BankDashboard = ({ showToast }) => {
                 {/* Notification bell and action buttons pushed completely to the right */}
                 <div className="ml-auto flex items-center gap-3">
                   <button className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-all" title="Examiner les formalités" onClick={(e) => { e.stopPropagation(); setSelectedApp(app); showToast(`Examen du dossier de ${app.user}`); }}><i className="ti ti-file-search"></i></button>
-                  <button className="w-8 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center transition-all" title="Accorder le prêt" onClick={(e) => { e.stopPropagation(); setSelectedApp(app); handleGenerateContract(); }}><i className="ti ti-check"></i></button>
+                  <button className="w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-all" title="Accorder le prêt" onClick={(e) => { e.stopPropagation(); setSelectedApp(app); handleGenerateContract(app); }}><i className="ti ti-check"></i></button>
                   
                   {/* Pushed all the way to the right of the card */}
                   <button 
-                    className="relative w-8 h-8 rounded-lg border border-slate-100 hover:border-emerald-100 text-slate-400 hover:text-emerald-700 flex items-center justify-center transition-all bg-white" 
+                    className="relative w-8 h-8 rounded-lg border border-slate-100 hover:border-blue-100 text-slate-400 hover:text-blue-700 flex items-center justify-center transition-all bg-white" 
                     onClick={(e) => { e.stopPropagation(); showToast(`Rapport d'audit pour ${app.user} disponible`); }}
                   >
                     <i className="ti ti-bell"></i>
@@ -1071,7 +1017,7 @@ const BankDashboard = ({ showToast }) => {
         <div className="risk-summary-panel flex flex-col gap-6">
           <div className="glass-panel audit-panel-premium p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col gap-5">
             <div className="audit-header flex items-center gap-3">
-              <i className="ti ti-database-check text-emerald-700 text-xl"></i>
+              <i className="ti ti-database-check text-blue-700 text-xl"></i>
               <h3 className="text-lg font-bold text-slate-800">Audit IA-KYC</h3>
             </div>
             <p className="text-slate-500 text-xs leading-normal tracking-[0.01em] mb-0">
@@ -1107,25 +1053,49 @@ const BankDashboard = ({ showToast }) => {
                     <span className="text-[10px] text-slate-400">Vérification en attente</span>
                   </div>
                 </div>
-                <div className="w-4 h-4 rounded-full border-2 border-slate-350 border-t-emerald-600 animate-spin"></div>
+                <div className="w-4 h-4 rounded-full border-2 border-slate-350 border-t-blue-600 animate-spin"></div>
               </div>
+              {selectedApp?.docs?.includes('Devis') ? (
+                <div className="audit-item success flex items-center justify-between p-3 bg-emerald-50/30 border border-emerald-100 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="ai-ico w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-500 shadow-sm"><i className="ti ti-file-invoice"></i></div>
+                    <div className="flex flex-col gap-0.5">
+                      <strong className="text-xs font-semibold text-slate-800">Facture pro-forma</strong>
+                      <span className="text-[10px] text-slate-400">Justifie le montant demandé</span>
+                    </div>
+                  </div>
+                  <i className="ti ti-circle-check text-emerald-600"></i>
+                </div>
+              ) : (
+                <div className="audit-item flex items-center justify-between p-3 bg-amber-50/40 border border-amber-100 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    <div className="ai-ico w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-500 shadow-sm"><i className="ti ti-file-invoice"></i></div>
+                    <div className="flex flex-col gap-0.5">
+                      <strong className="text-xs font-semibold text-slate-800">Facture pro-forma</strong>
+                      <span className="text-[10px] text-amber-600">Manquante — requise avant décaissement</span>
+                    </div>
+                  </div>
+                  <i className="ti ti-alert-triangle text-amber-500"></i>
+                </div>
+              )}
             </div>
 
             <div className="risk-meter space-y-2">
               <div className="flex justify-between items-center text-xs font-semibold">
                 <span className="text-slate-500">Indice de confiance global</span>
-                <strong className="text-emerald-700">89%</strong>
+                <strong className="text-blue-700">89%</strong>
               </div>
               <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div className="h-full bg-emerald-600" style={{ width: '89%' }}></div>
+                <div className="h-full bg-blue-600" style={{ width: '89%' }}></div>
               </div>
             </div>
 
             {/* Interactive functional action triggers */}
             <div className="flex flex-col gap-3">
-              <button 
-                onClick={handleGenerateContract}
-                className="btn-premium primary w-full cursor-pointer"
+              <button
+                onClick={() => handleGenerateContract()}
+                disabled={!selectedApp?.docs?.includes('Devis')}
+                className="btn-premium primary w-full cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Générer Contrat de Prêt
               </button>
@@ -1146,12 +1116,12 @@ const BankDashboard = ({ showToast }) => {
             <div className="payout-list flex flex-col gap-3">
               <div className="payout-row flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-xs font-semibold text-slate-700">S. Touré</span>
-                <strong className="text-xs font-bold text-emerald-800">450k FCFA</strong>
+                <strong className="text-xs font-bold text-blue-800">450k FCFA</strong>
                 <em className="text-[10px] text-slate-400 not-italic">Aujourd'hui</em>
               </div>
               <div className="payout-row flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-xs font-semibold text-slate-700">M. Keita</span>
-                <strong className="text-xs font-bold text-emerald-800">120k FCFA</strong>
+                <strong className="text-xs font-bold text-blue-800">120k FCFA</strong>
                 <em className="text-[10px] text-slate-400 not-italic">Hier</em>
               </div>
             </div>
@@ -1170,25 +1140,26 @@ const BankDashboard = ({ showToast }) => {
               </button>
             </div>
             <div className="modal-body p-6 flex flex-col gap-5">
-              <div className="p-4 bg-emerald-50/40 rounded-2xl border border-emerald-100 font-mono text-xs space-y-3 text-slate-700 leading-relaxed">
-                <div className="text-center font-bold border-b border-emerald-100 pb-2 text-emerald-800 text-sm">
+              <div className="p-4 bg-blue-50/40 rounded-2xl border border-blue-100 font-mono text-xs space-y-3 text-slate-700 leading-relaxed">
+                <div className="text-center font-bold border-b border-blue-100 pb-2 text-blue-800 text-sm">
                   ACTE DE CRÉDIT MÉDICAL #CM-{selectedApp?.id}
                 </div>
                 <div className="flex justify-between"><span>Bénéficiaire:</span><span className="font-bold">{selectedApp?.user}</span></div>
-                <div className="flex justify-between"><span>Établissement:</span><span className="font-bold">Clinique Avicenne</span></div>
                 <div className="flex justify-between"><span>Besoin de santé:</span><span className="font-bold">{selectedApp?.care}</span></div>
-                <div className="flex justify-between"><span>Montant Prêt:</span><span className="font-bold text-emerald-800">{selectedApp?.amount}</span></div>
+                <div className="flex justify-between"><span>Montant Prêt:</span><span className="font-bold text-blue-800">{selectedApp?.amount}</span></div>
                 <div className="flex justify-between"><span>Taux d'intérêt:</span><span className="font-bold">7.9% SGCI Santé +</span></div>
                 <div className="flex justify-between"><span>Durée:</span><span className="font-bold">12 Mois</span></div>
-                <div className="flex justify-between"><span>Mensualités:</span><span className="font-bold text-emerald-800">~ 21 875 FCFA / mois</span></div>
+                <div className="flex justify-between"><span>Mensualités:</span><span className="font-bold text-blue-800">~ 21 875 FCFA / mois</span></div>
+                <div className="flex justify-between border-t border-blue-100 pt-2"><span>Décaissé à:</span><span className="font-bold">Clinique Avicenne</span></div>
+                <div className="flex justify-between"><span>Justificatif:</span><span className="font-bold">Facture pro-forma #{selectedApp?.id}</span></div>
               </div>
               <p className="text-xs text-slate-500 leading-relaxed max-w-[70ch] mb-0">
-                La validation de cette étape va générer le contrat officiel au format PDF sécurisé, et notifier l'assuré pour signature électronique immédiate sur son espace client.
+                Conformément à notre politique de décaissement, les fonds sont versés directement à l'établissement de santé sur présentation de la facture pro-forma — jamais sur le compte de l'assuré. La validation de cette étape génère le contrat officiel au format PDF sécurisé et notifie l'assuré pour signature électronique.
               </p>
               <div className="modal-actions flex justify-end gap-3 pt-2">
                 <button className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold" onClick={() => setActiveModal(null)}>Annuler</button>
                 <button 
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold shadow-md shadow-emerald-600/10" 
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-xs font-bold shadow-md shadow-blue-600/10" 
                   onClick={() => {
                     showToast(`Contrat de prêt généré avec succès pour ${selectedApp?.user} !`);
                     setActiveModal(null);
@@ -1219,7 +1190,7 @@ const BankDashboard = ({ showToast }) => {
                   <label className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100/50 rounded-xl cursor-pointer border border-slate-100 transition-all">
                     <input 
                       type="checkbox" 
-                      className="accent-emerald-600 rounded" 
+                      className="accent-blue-600 rounded" 
                       checked={missingDocs.releve} 
                       onChange={(e) => setMissingDocs(p => ({ ...p, releve: e.target.checked }))} 
                     />
@@ -1228,7 +1199,7 @@ const BankDashboard = ({ showToast }) => {
                   <label className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100/50 rounded-xl cursor-pointer border border-slate-100 transition-all">
                     <input 
                       type="checkbox" 
-                      className="accent-emerald-600 rounded" 
+                      className="accent-blue-600 rounded" 
                       checked={missingDocs.devis} 
                       onChange={(e) => setMissingDocs(p => ({ ...p, devis: e.target.checked }))} 
                     />
@@ -1237,7 +1208,7 @@ const BankDashboard = ({ showToast }) => {
                   <label className="flex items-center gap-3 p-3 bg-slate-50 hover:bg-slate-100/50 rounded-xl cursor-pointer border border-slate-100 transition-all">
                     <input 
                       type="checkbox" 
-                      className="accent-emerald-600 rounded" 
+                      className="accent-blue-600 rounded" 
                       checked={missingDocs.ocr} 
                       onChange={(e) => setMissingDocs(p => ({ ...p, ocr: e.target.checked }))} 
                     />
@@ -1252,14 +1223,14 @@ const BankDashboard = ({ showToast }) => {
                   value={customComment}
                   onChange={(e) => setCustomComment(e.target.value)}
                   placeholder="Ex: Merci de fournir un devis signé avec le cachet du médecin conseil..."
-                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-750 focus:outline-none focus:ring-1 focus:ring-emerald-600 min-h-[90px]"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-750 focus:outline-none focus:ring-1 focus:ring-blue-600 min-h-[90px]"
                 />
               </div>
 
               <div className="modal-actions flex justify-end gap-3 pt-2">
                 <button className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold" onClick={() => setActiveModal(null)}>Annuler</button>
                 <button 
-                  className="px-5 py-2.5 rounded-xl bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold shadow-md shadow-emerald-600/10" 
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-xs font-bold shadow-md shadow-blue-600/10" 
                   onClick={() => {
                     showToast(`Demande de documents complémentaires envoyée à ${selectedApp?.user} !`);
                     setActiveModal(null);
@@ -1276,161 +1247,106 @@ const BankDashboard = ({ showToast }) => {
   );
 };
 
-const UserDashboard = ({ navigateToTab, kycPercentage }) => (
-  <div className="pilotage-view animate-fade-in">
-    <div className="view-header">
-      <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Mon Espace Santé</h1>
-      <div className="header-actions">
-        <button className="btn-premium primary" onClick={() => navigateToTab('simulateur')}><i className="ti ti-plus"></i> Nouveau Prêt</button>
-      </div>
-    </div>
+const RISK_FACTORS = [
+  { label: 'Historique de crédit', impact: 85 },
+  { label: 'Stabilité des revenus', impact: 70 },
+  { label: 'Complétude du dossier', impact: 60 },
+  { label: 'Zone géographique', impact: 45 },
+];
 
-    <div className="user-dashboard-grid">
-      <div className="u-main-panel">
-        <div className="metric-card-premium highlight flex items-center justify-between p-6 bg-emerald-900 text-white rounded-3xl shadow-sm">
-          <div className="m-info space-y-1">
-            <span className="text-[10px] font-bold text-emerald-200 uppercase tracking-[0.05em]">PRÊT ACTIF</span>
-            <div className="text-2xl font-extrabold text-white tracking-tight">350 000 FCFA</div>
-            <span className="text-xs text-emerald-100/80 leading-normal tracking-[0.01em] block">Prochaine échéance : 25 Juin 2024</span>
-          </div>
-          <div className="m-icon text-3xl text-emerald-300"><i className="ti ti-activity-heartbeat"></i></div>
+const BankRiskView = () => {
+  const total = MOCK_APPLICATIONS.length;
+  const byRisk = { Faible: [], Moyen: [], Élevé: [] };
+  MOCK_APPLICATIONS.forEach(a => byRisk[a.risk].push(a));
+
+  const parseAmount = (str) => parseInt(str.replace(/[^\d]/g, ''), 10);
+  const totalAmount = MOCK_APPLICATIONS.reduce((sum, a) => sum + parseAmount(a.amount), 0);
+
+  const sortedApps = [...MOCK_APPLICATIONS].sort((a, b) => {
+    const order = { 'Élevé': 0, 'Moyen': 1, 'Faible': 2 };
+    return order[a.risk] - order[b.risk];
+  });
+
+  return (
+    <div className="pilotage-view animate-fade-in">
+      <div className="view-header">
+        <div className="title-group">
+          <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Analyse de Risque</h1>
+          <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Exposition et facteurs de risque du portefeuille de prêts santé</p>
         </div>
+        <div className="header-actions">
+          <span className="status-pill active-glow">
+            Exposition totale · {new Intl.NumberFormat('fr-FR').format(totalAmount)} FCFA
+          </span>
+        </div>
+      </div>
 
-        <div className="glass-panel recent-activity p-6 bg-white border border-slate-100 rounded-3xl shadow-sm space-y-4">
-          <h3 className="text-lg font-bold text-slate-800 leading-snug tracking-[-0.01em]">Suivi des demandes</h3>
-          <div className="activity-track flex flex-col gap-4">
-            <div className="track-item current flex items-start gap-4 p-3 bg-slate-50 rounded-2xl">
-              <div className="t-ico p-2.5 bg-slate-200 rounded-xl text-slate-600 flex items-center justify-center"><i className="ti ti-loader-2 animate-spin"></i></div>
-              <div className="t-det flex-1">
-                <strong className="text-xs font-bold text-slate-850 block mb-0.5">Bilan de santé</strong>
-                <span className="text-xs text-slate-500 leading-normal">En attente de validation BNI</span>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        {Object.entries(byRisk).map(([risk, apps]) => {
+          const amount = apps.reduce((sum, a) => sum + parseAmount(a.amount), 0);
+          const pct = total ? Math.round((apps.length / total) * 100) : 0;
+          return (
+            <div key={risk} className="glass-panel-premium rounded-3xl p-5 border border-slate-100 shadow-sm">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="w-2.5 h-2.5 rounded-full" style={{ background: RISK_COLORS[risk] }}></span>
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Risque {risk}</span>
+              </div>
+              <div className="text-2xl font-extrabold text-slate-900 tracking-tight">{apps.length} <span className="text-sm font-semibold text-slate-400">dossier{apps.length > 1 ? 's' : ''}</span></div>
+              <div className="text-xs text-slate-500 mt-1">{new Intl.NumberFormat('fr-FR').format(amount)} FCFA · {pct}% du portefeuille</div>
+              <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden mt-3">
+                <div className="h-full rounded-full" style={{ width: `${pct}%`, background: RISK_COLORS[risk] }}></div>
               </div>
             </div>
-            <div className="track-item done flex items-start gap-4 p-3 bg-emerald-50/20 border border-emerald-100/50 rounded-2xl">
-              <div className="t-ico p-2.5 bg-emerald-550 bg-emerald-100 rounded-xl text-emerald-700 flex items-center justify-center"><i className="ti ti-check"></i></div>
-              <div className="t-det flex-1">
-                <strong className="text-xs font-bold text-emerald-900 block mb-0.5">Soin Dentaire</strong>
-                <span className="text-xs text-slate-500 leading-normal">Décaissé par SGCI (12/05)</span>
+          );
+        })}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+        <div className="glass-panel-premium rounded-3xl p-6 border border-slate-100 shadow-sm">
+          <h3 className="text-lg font-bold text-slate-800 mb-5">Dossiers triés par risque</h3>
+          <div className="flex flex-col gap-3">
+            {sortedApps.map(app => (
+              <div key={app.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-700 text-sm">{app.user[0]}</div>
+                <div className="flex-1 min-w-0">
+                  <strong className="text-sm font-bold text-slate-800 block">{app.user}</strong>
+                  <span className="text-xs text-slate-500">{app.care} · {app.amount}</span>
+                </div>
+                <span
+                  className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full"
+                  style={{ background: `${RISK_COLORS[app.risk]}1A`, color: RISK_COLORS[app.risk] }}
+                >
+                  {app.risk}
+                </span>
+                <div className="w-9 h-9 rounded-full border-2 flex items-center justify-center text-xs font-bold text-slate-700" style={{ borderColor: RISK_COLORS[app.risk] }}>
+                  {app.scoring}
+                </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="u-side-panel">
-        <div className="glass-panel kyc-summary-card p-6 bg-white border border-slate-100 rounded-3xl shadow-sm space-y-4 flex flex-col">
-          <div className="k-header flex justify-between items-center text-sm font-bold">
-            <h3 className="text-sm font-bold text-slate-850 uppercase tracking-wider">Mes Formalités</h3>
-            <span className="text-emerald-700">{kycPercentage}%</span>
-          </div>
-          <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-700" style={{ width: `${kycPercentage}%` }}></div>
-          </div>
-          <p className="text-xs text-slate-500 leading-relaxed tracking-[0.01em] mb-4 max-w-[70ch]">
-            Complétez votre dossier de formalités pour accélérer l'analyse de vos futures demandes.
-          </p>
-          <button className="btn-premium secondary w-full py-3 text-xs font-bold rounded-xl border border-slate-200 mt-auto" onClick={() => navigateToTab('documents')}>Gérer mes documents</button>
-        </div>
-      </div>
-    </div>
-  </div>
-);
-
-const SimulationView = ({ careType, setCareType, amount, setAmount, duration, setDuration, currentSim, formatFCFA, navigateToTab, showToast }) => (
-  <div className="pilotage-view animate-fade-in">
-    <div className="view-header">
-      <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Simulateur de Crédit</h1>
-    </div>
-    <div className="simulation-workspace glass-panel p-6 bg-white border border-slate-100 rounded-3xl shadow-sm grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="sim-form flex flex-col gap-5">
-        {/* Classy medical care dropdown selector, aligned cleanly and styled premium */}
-        <div className="flex items-center justify-between py-2 border-b border-slate-100 gap-4 w-full">
-          <label className="text-sm font-bold text-slate-700 tracking-tight">Besoin Médical</label>
-          <div className="relative">
-            <select
-              className="bg-slate-50 border border-slate-200 rounded-xl pl-4 pr-10 py-2.5 text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent cursor-pointer hover:bg-slate-100 transition-all min-w-[190px] shadow-sm appearance-none"
-              value={careType}
-              onChange={(e) => setCareType(Number(e.target.value))}
-            >
-              <option value={1}>Chirurgie Générale</option>
-              <option value={2}>Soin Dentaire</option>
-              <option value={3}>Accouchement / Maternité</option>
-              <option value={4}>Bilan & Diagnostic</option>
-            </select>
-            <div className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none">
-              <i className="ti ti-chevron-down text-xs"></i>
-            </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-[0.05em] flex justify-between">
-            Montant Souhaité 
-            <strong className="text-emerald-800 text-sm font-bold font-mono tracking-tight">{formatFCFA(amount)}</strong>
-          </label>
-          <input type="range" min="100000" max="2000000" step="50000" value={amount} onChange={(e) => setAmount(Number(e.target.value))} className="w-full accent-emerald-600 h-1.5 bg-slate-100 rounded-lg cursor-pointer" />
-        </div>
-
-        <div className="flex flex-col gap-2">
-          <label className="text-xs font-bold text-slate-400 uppercase tracking-[0.05em]">Durée de remboursement : <strong>{duration} mois</strong></label>
-          <div className="duration-presets flex gap-2">
-            {[6, 12, 18, 24].map(d => (
-              <button key={d} className={`flex-1 py-2 text-xs font-semibold rounded-lg border transition-all ${duration === d ? 'bg-emerald-600 border-emerald-600 text-white shadow-sm' : 'bg-white border-slate-200 text-slate-650 hover:bg-slate-50'}`} onClick={() => setDuration(d)}>{d} mois</button>
             ))}
           </div>
         </div>
-      </div>
 
-      <div className="sim-results bg-slate-50 border border-slate-100 rounded-2xl p-5 flex flex-col justify-between gap-5">
-        <div className="result-box space-y-1">
-          <span className="text-xs font-bold text-slate-400 uppercase tracking-[0.05em]">Mensualité estimée</span>
-          <div className="text-2xl font-extrabold text-emerald-850 tracking-tight font-mono">{formatFCFA(currentSim.monthly)}</div>
-        </div>
-        <div className="result-details border-t border-slate-200/60 pt-4 flex flex-col gap-2.5">
-          <div className="r-line flex justify-between text-xs font-semibold text-slate-500"><span>Taux Annuel (fixe)</span><b className="text-slate-800 font-bold">8.5%</b></div>
-          <div className="r-line flex justify-between text-xs font-semibold text-slate-500"><span>Total à rembourser</span><b className="text-slate-800 font-bold font-mono">{formatFCFA(currentSim.total)}</b></div>
-        </div>
-        <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 rounded-xl transition-all shadow-md shadow-emerald-600/10 text-sm mt-2" onClick={() => { showToast("Simulation enregistrée"); navigateToTab('dashboard'); }}>Confirmer & Choisir une Banque</button>
-      </div>
-    </div>
-  </div>
-);
-
-const DocumentsView = ({ kycDocs, setKycDocs, showToast }) => (
-  <div className="pilotage-view animate-fade-in">
-    <div className="view-header">
-      <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Dossier de Formalités</h1>
-    </div>
-    <div className="docs-management glass-panel p-6 bg-white border border-slate-100 rounded-3xl shadow-sm">
-      <div className="docs-grid grid grid-cols-1 md:grid-cols-2 gap-4">
-        {[
-          { id: 'cni', name: 'Pièce d\'identité (CNI/Passport)', status: kycDocs.cni },
-          { id: 'salaire', name: '3 derniers bulletins de salaire', status: kycDocs.salaire },
-          { id: 'releve', name: 'Relevé d\'identité bancaire (RIB)', status: kycDocs.releve },
-          { id: 'devis', name: 'Devis de l\'établissement de soin', status: kycDocs.devis },
-        ].map(doc => (
-          <div className="doc-card flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100 shadow-sm" key={doc.id}>
-            <div className="flex items-center gap-3">
-              <div className={`doc-icon p-2.5 rounded-xl flex items-center justify-center text-lg ${doc.status ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-slate-200 text-slate-500'}`}><i className={`ti ${doc.status ? 'ti-file-check' : 'ti-file-upload'}`}></i></div>
-              <div className="doc-body space-y-0.5">
-                <strong className="text-xs font-bold text-slate-800 leading-tight block">{doc.name}</strong>
-                <p className="text-[10px] text-slate-450 leading-none mb-0">{doc.status ? 'Document vérifié et validé' : 'Chargement requis'}</p>
+        <div className="glass-panel-premium rounded-3xl p-6 border border-slate-100 shadow-sm">
+          <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Facteurs de risque</h3>
+          <div className="flex flex-col gap-4">
+            {RISK_FACTORS.map(f => (
+              <div key={f.label}>
+                <div className="flex justify-between text-xs font-semibold text-slate-600 mb-1.5">
+                  <span>{f.label}</span>
+                  <span>{f.impact}%</span>
+                </div>
+                <div className="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-600 rounded-full" style={{ width: `${f.impact}%` }}></div>
+                </div>
               </div>
-            </div>
-            <button className={`px-4 py-1.5 rounded-lg text-xs font-bold border transition-all ${doc.status ? 'bg-emerald-50 border-emerald-200 text-emerald-700 cursor-default' : 'bg-emerald-600 border-emerald-600 text-white hover:bg-emerald-700 shadow-sm shadow-emerald-600/10'}`} onClick={() => {
-              if (!doc.status) {
-                setKycDocs(p => ({ ...p, [doc.id]: true }));
-                showToast(`Document ${doc.id.toUpperCase()} chargé avec succès`);
-              }
-            }}>
-              {doc.status ? <i className="ti ti-check font-bold"></i> : 'Charger'}
-            </button>
+            ))}
           </div>
-        ))}
+          <p className="text-[11px] text-slate-400 mt-5 mb-0">Poids estimé de chaque facteur dans le score de risque global calculé par le moteur IA-KYC.</p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const HelpCenterView = ({ handleSearchHelp, helpSearchQuery, showToast }) => {
   const [activeTopic, setActiveTopic] = useState(null); // null, 'startup', 'training', 'support'
@@ -1556,11 +1472,11 @@ const HelpCenterView = ({ handleSearchHelp, helpSearchQuery, showToast }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <div className="glass-panel p-5 bg-white border border-slate-100 rounded-3xl shadow-sm flex flex-col gap-4">
-            <div className="relative aspect-video bg-emerald-950/20 rounded-2xl flex items-center justify-center group cursor-pointer border border-emerald-900/10 shadow-sm" onClick={() => showToast("Lecture du webinaire...")}>
-              <span className="p-3 bg-emerald-650 bg-emerald-600 rounded-full text-white text-lg transition-all group-hover:scale-110 shadow-md"><i className="ti ti-player-play"></i></span>
+            <div className="relative aspect-video bg-indigo-950/20 rounded-2xl flex items-center justify-center group cursor-pointer border border-indigo-900/10 shadow-sm" onClick={() => showToast("Lecture du webinaire...")}>
+              <span className="p-3 bg-indigo-600 rounded-full text-white text-lg transition-all group-hover:scale-110 shadow-md"><i className="ti ti-player-play"></i></span>
             </div>
             <div className="space-y-1">
-              <span className="text-[9px] font-bold text-emerald-700 uppercase tracking-widest block bg-emerald-50 w-max px-2 py-0.5 rounded-full">WEBINAIRE ADMIN</span>
+              <span className="text-[9px] font-bold text-indigo-700 uppercase tracking-widest block bg-indigo-50 w-max px-2 py-0.5 rounded-full">WEBINAIRE ADMIN</span>
               <h4 className="text-base font-bold text-slate-800 leading-snug">Gestion des Risques & Scoring IA</h4>
               <p className="text-xs text-slate-500 leading-relaxed tracking-[0.01em] max-w-[70ch] mb-0">Apprenez à interpréter le score d'audit KYC et les alertes automatisées.</p>
             </div>
@@ -1596,13 +1512,13 @@ const HelpCenterView = ({ handleSearchHelp, helpSearchQuery, showToast }) => {
         </div>
 
         <div className="max-w-2xl mx-auto glass-panel bg-white border border-slate-100 rounded-3xl shadow-lg overflow-hidden flex flex-col h-[500px]">
-          <div className="bg-emerald-900 text-white px-6 py-4 flex items-center justify-between shadow-sm">
+          <div className="bg-blue-900 text-white px-6 py-4 flex items-center justify-between shadow-sm">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-emerald-800 border-2 border-emerald-400 flex items-center justify-center"><i className="ti ti-headset text-xl"></i></div>
+              <div className="w-10 h-10 rounded-full bg-blue-800 border-2 border-blue-400 flex items-center justify-center"><i className="ti ti-headset text-xl"></i></div>
               <div className="space-y-0.5">
                 <h4 className="text-sm font-bold text-white mb-0">Assistance Prêt Santé</h4>
-                <span className="text-[10px] text-emerald-300 font-semibold flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> Conseiller en ligne
+                <span className="text-[10px] text-blue-300 font-semibold flex items-center gap-1">
+                  <span className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse"></span> Conseiller en ligne
                 </span>
               </div>
             </div>
@@ -1611,7 +1527,7 @@ const HelpCenterView = ({ handleSearchHelp, helpSearchQuery, showToast }) => {
           <div className="flex-1 p-6 overflow-y-auto flex flex-col gap-4 bg-slate-50">
             {chatMessages.map(msg => (
               <div key={msg.id} className={`flex flex-col max-w-[80%] ${msg.sender === 'user' ? 'self-end items-end' : 'self-start items-start'}`}>
-                <div className={`p-3.5 rounded-2xl text-xs leading-relaxed tracking-wide ${msg.sender === 'user' ? 'bg-emerald-600 text-white rounded-tr-none' : 'bg-white text-slate-800 border border-slate-200/60 rounded-tl-none shadow-sm'}`}>
+                <div className={`p-3.5 rounded-2xl text-xs leading-relaxed tracking-wide ${msg.sender === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white text-slate-800 border border-slate-200/60 rounded-tl-none shadow-sm'}`}>
                   {msg.text}
                 </div>
                 <span className="text-[9px] text-slate-400 mt-1 font-semibold px-1">{msg.time}</span>
@@ -1634,9 +1550,9 @@ const HelpCenterView = ({ handleSearchHelp, helpSearchQuery, showToast }) => {
               placeholder="Écrivez votre message ici..." 
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
-              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:ring-1 focus:ring-emerald-600 focus:bg-white"
+              className="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs focus:outline-none focus:ring-1 focus:ring-blue-600 focus:bg-white"
             />
-            <button type="submit" className="w-10 h-10 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl flex items-center justify-center shadow-md shadow-emerald-600/10 transition-all"><i className="ti ti-send text-base"></i></button>
+            <button type="submit" className="w-10 h-10 bg-blue-600 hover:bg-blue-700 text-white rounded-xl flex items-center justify-center shadow-md shadow-blue-600/10 transition-all"><i className="ti ti-send text-base"></i></button>
           </form>
         </div>
       </div>
@@ -1673,7 +1589,7 @@ const HelpCenterView = ({ handleSearchHelp, helpSearchQuery, showToast }) => {
           {filteredCategories.length > 0 ? (
             filteredCategories.map(cat => (
               <div 
-                className="glass-panel-premium help-card-premium flex items-center gap-6 p-6 cursor-pointer hover:-translate-y-2 border border-slate-100 hover:border-emerald-500 transition-all rounded-3xl" 
+                className="glass-panel-premium help-card-premium flex items-center gap-6 p-6 cursor-pointer hover:-translate-y-2 border border-slate-100 hover:border-blue-500 transition-all rounded-3xl"
                 key={cat.id} 
                 onClick={() => {
                   if (cat.id === 'startup' || cat.id === 'training' || cat.id === 'support') {
@@ -1683,7 +1599,7 @@ const HelpCenterView = ({ handleSearchHelp, helpSearchQuery, showToast }) => {
                   }
                 }}
               >
-                <div className={`h-icon-wrapper w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${cat.type === 'startup' ? 'bg-blue-50 text-blue-600' : cat.type === 'support' ? 'bg-emerald-50 text-emerald-600' : cat.type === 'security' ? 'bg-orange-50 text-orange-600' : 'bg-slate-100 text-slate-650'}`}>
+                <div className={`h-icon-wrapper w-14 h-14 rounded-2xl flex items-center justify-center text-2xl ${cat.type === 'startup' ? 'bg-blue-50 text-blue-600' : cat.type === 'support' ? 'bg-cyan-50 text-cyan-600' : cat.type === 'security' ? 'bg-orange-50 text-orange-600' : 'bg-slate-100 text-slate-650'}`}>
                   <i className={`ti ${cat.icon}`}></i>
                 </div>
                 <div className="h-body flex-1 min-w-0">
@@ -1704,7 +1620,7 @@ const HelpCenterView = ({ handleSearchHelp, helpSearchQuery, showToast }) => {
 
         <div className="glass-panel-premium faq-section-premium p-6 rounded-3xl border border-slate-100 shadow-sm space-y-6">
           <div className="section-title flex items-center gap-3">
-            <i className="ti ti-list-details text-emerald-700 text-xl"></i>
+            <i className="ti ti-list-details text-blue-700 text-xl"></i>
             <h3 className="text-lg font-bold text-slate-800">Questions Fréquentes</h3>
           </div>
           <div className="faq-grid grid grid-cols-1 md:grid-cols-2 gap-6">

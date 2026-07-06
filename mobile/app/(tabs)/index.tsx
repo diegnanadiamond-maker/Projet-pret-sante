@@ -1,265 +1,223 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Plus, Building2, FileUp, Calendar, Check, Smile, Activity, Stethoscope } from 'lucide-react-native';
+import { Plus, ArrowRight, Smile, Baby, Activity, ChevronRight } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
+import { Fonts, Radius, Shadow, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/components/useColorScheme';
+import { useData, LoanRequest } from '@/context/DataContext';
+import Screen from '@/components/ui/Screen';
+import PulseLine from '@/components/ui/PulseLine';
 
-import { useData } from '@/context/DataContext';
+const CARE_LABELS: Record<number, { label: string; icon: any }> = {
+  1: { label: 'Prothèse dentaire', icon: Smile },
+  2: { label: 'Accouchement', icon: Baby },
+  3: { label: 'Bilan de santé', icon: Activity },
+  4: { label: 'Autre soin', icon: Plus },
+};
 
 export default function DashboardScreen() {
   const router = useRouter();
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-  const { kycPct } = useData();
+  const colors = Colors[useColorScheme() ?? 'light'];
+  const { fullName, loans } = useData();
+
+  const firstName = fullName.split(' ')[0] || fullName;
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
-      <View style={[styles.header, { backgroundColor: colors.secondary }]}>
-        <View style={styles.headerTop}>
-          <View>
-            <Text style={styles.greetingText}>Bonjour 👋</Text>
-            <Text style={styles.userName}>Kouamé Adou</Text>
-          </View>
-          <View style={styles.avatar}>
-            <View style={{ width: 20, height: 20, borderRadius: 10, backgroundColor: '#fff' }} />
-          </View>
+    <Screen padded>
+      <View style={styles.topRow}>
+        <View>
+          <Text style={[styles.greeting, { color: colors.textMuted }]}>Bonjour {firstName} 👋</Text>
+          <Text style={[styles.title, { color: colors.text }]}>Votre espace santé</Text>
+        </View>
+        <View style={[styles.avatar, { backgroundColor: colors.primarySoft }]}>
+          <Text style={[styles.avatarText, { color: colors.primary }]}>{firstName.charAt(0).toUpperCase()}</Text>
         </View>
       </View>
 
-      <View style={styles.balanceCardContainer}>
-        <View style={[styles.balanceCard, { borderColor: colors.border, backgroundColor: colors.background }]}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.balanceLabel}>{kycPct < 100 ? "Finalisez votre profil" : "Prêt en cours"}</Text>
-            <Text style={[styles.balanceAmount, { color: colors.text }]}>{kycPct < 100 ? `${kycPct}% complété` : "350 000 FCFA"}</Text>
-            <Text style={[styles.balanceSub, { color: colors.primary }]}>
-              {kycPct < 100 ? "Ajoutez les documents manquants" : "Prochain versement : 25 juin"}
-            </Text>
+      <TouchableOpacity
+        activeOpacity={0.9}
+        style={[styles.ctaCard, Shadow.lifted, { backgroundColor: colors.primary }]}
+        onPress={() => router.push('/(loan-request)/step-1-care')}
+      >
+        <View style={styles.ctaPulse}>
+          <PulseLine color="rgba(255,255,255,0.18)" width={220} height={40} strokeWidth={3} />
+        </View>
+
+        <View style={styles.ctaTop}>
+          <View style={styles.ctaIconBadge}>
+            <Plus size={26} color={colors.primary} strokeWidth={2.5} />
           </View>
-          <TouchableOpacity 
-            style={[styles.statusPill, { backgroundColor: kycPct < 100 ? '#FAEEDA' : colors.lightGreen }]}
-            onPress={() => router.push('/(tabs)/profile')}
+          <View style={styles.ctaArrowBadge}>
+            <ArrowRight size={16} color="#FFFFFF" />
+          </View>
+        </View>
+
+        <Text style={styles.ctaEyebrow}>DEMANDE DE FINANCEMENT</Text>
+        <Text style={styles.ctaTitle}>Nouvelle demande</Text>
+        <Text style={styles.ctaSub}>Simulez et obtenez votre financement santé en quelques minutes</Text>
+      </TouchableOpacity>
+
+      <View style={styles.section}>
+        <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Activité récente</Text>
+        {loans.length === 0 ? (
+          <Text style={[styles.emptyActivity, { color: colors.textMuted }]}>
+            Aucune activité pour l'instant — démarrez votre première demande ci-dessus.
+          </Text>
+        ) : (
+          <View style={{ gap: 10 }}>
+            {loans.map((loan) => (
+              <ActivityRow key={loan.id} loan={loan} colors={colors} onPress={() => router.push({ pathname: '/loan-tracker', params: { id: loan.id } })} />
+            ))}
+          </View>
+        )}
+      </View>
+    </Screen>
+  );
+}
+
+function ActivityRow({ loan, colors, onPress }: { loan: LoanRequest; colors: any; onPress: () => void }) {
+  const care = CARE_LABELS[loan.loanType] ?? CARE_LABELS[1];
+
+  return (
+    <TouchableOpacity activeOpacity={0.8} onPress={onPress}>
+      <View style={[styles.activityItem, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+        <View style={[styles.actIcon, { backgroundColor: colors.secondarySoft }]}>
+          <care.icon size={18} color={colors.secondary} />
+        </View>
+        <View style={styles.actInfo}>
+          <Text style={[styles.actTitle, { color: colors.text }]}>{care.label}</Text>
+          <Text style={[styles.actSubtitle, { color: colors.textMuted }]}>{loan.establishment}</Text>
+        </View>
+        <View
+          style={[
+            styles.actBadge,
+            { backgroundColor: loan.status === 'active' ? colors.successSoft : colors.accentSkySoft },
+          ]}
+        >
+          <Text
+            style={[
+              styles.actBadgeText,
+              { color: loan.status === 'active' ? colors.success : colors.accentSky },
+            ]}
           >
-            {kycPct === 100 && <Check size={12} color={colors.secondary} />}
-            <Text style={[styles.statusText, { color: kycPct < 100 ? '#854F0B' : colors.secondary }]}>
-              {kycPct < 100 ? "Action requise" : "Actif"}
-            </Text>
-          </TouchableOpacity>
+            {loan.status === 'active' ? 'Accepté' : 'En cours'}
+          </Text>
         </View>
+        <ChevronRight size={16} color={colors.textMuted} />
       </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Actions rapides</Text>
-        <View style={styles.quickActions}>
-          <QuickActionButton 
-            icon={<Plus size={24} color={colors.primary} />} 
-            label="Nouveau prêt" 
-            onPress={() => router.push('/(tabs)/loan')}
-          />
-          <QuickActionButton 
-            icon={<Building2 size={24} color="#185FA5" />} 
-            label="Banques" 
-            onPress={() => router.push('/(tabs)/banks')}
-          />
-          <QuickActionButton 
-            icon={<FileUp size={24} color="#854F0B" />} 
-            label="Documents" 
-          />
-          <QuickActionButton 
-            icon={<Calendar size={24} color="#A32D2D" />} 
-            label="Échéancier" 
-          />
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Activité récente</Text>
-        <View style={styles.activityList}>
-          <ActivityItem 
-            icon={<Smile size={18} color={colors.secondary} />}
-            iconBg={colors.lightGreen}
-            title="Prothèse dentaire"
-            subtitle="Clinique Avicenne · 15 mai"
-            status="Accepté"
-            statusType="ok"
-            colors={colors}
-          />
-          <ActivityItem 
-            icon={<Stethoscope size={18} color="#185FA5" />}
-            iconBg="#E6F1FB"
-            title="Bilan de santé"
-            subtitle="Centre Médical IBK · 2 mai"
-            status="En cours"
-            statusType="pending"
-            colors={colors}
-          />
-        </View>
-      </View>
-    </ScrollView>
-  );
-}
-
-function UserIcon({ size, color }: { size: number, color: string }) {
-  return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: color }} />
-  );
-}
-
-function QuickActionButton({ icon, label, onPress }: { icon: React.ReactNode, label: string, onPress?: () => void }) {
-  return (
-    <TouchableOpacity style={styles.qaBtn} onPress={onPress}>
-      <View style={styles.qaIconContainer}>{icon}</View>
-      <Text style={styles.qaLabel}>{label}</Text>
     </TouchableOpacity>
   );
 }
 
-function ActivityItem({ icon, iconBg, title, subtitle, status, statusType, colors }: any) {
-  const statusColors = statusType === 'ok' ? 
-    { bg: colors.lightGreen, text: colors.secondary } : 
-    { bg: '#FAEEDA', text: '#854F0B' };
-
-  return (
-    <View style={[styles.activityItem, { backgroundColor: '#F9FAFB', borderColor: colors.border }]}>
-      <View style={[styles.actIcon, { backgroundColor: iconBg }]}>{icon}</View>
-      <View style={styles.actInfo}>
-        <Text style={[styles.actTitle, { color: colors.text }]}>{title}</Text>
-        <Text style={styles.actSubtitle}>{subtitle}</Text>
-      </View>
-      <View style={[styles.actBadge, { backgroundColor: statusColors.bg }]}>
-        <Text style={[styles.actBadgeText, { color: statusColors.text }]}>{status}</Text>
-      </View>
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  header: {
-    paddingTop: 20,
-    paddingBottom: 40,
-    paddingHorizontal: 20,
-  },
-  headerTop: {
+  topRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: Spacing.sm,
   },
-  greetingText: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
+  greeting: {
+    fontFamily: Fonts.body,
+    fontSize: 12.5,
   },
-  userName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
+  title: {
+    fontFamily: Fonts.display,
+    fontSize: 21,
     marginTop: 2,
   },
   avatar: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  balanceCardContainer: {
-    paddingHorizontal: 16,
-    marginTop: -25,
+  avatarText: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 15,
   },
-  balanceCard: {
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 0.5,
+  ctaCard: {
+    marginTop: Spacing.xl,
+    padding: 22,
+    borderRadius: Radius.xl,
+    overflow: 'hidden',
+  },
+  ctaPulse: {
+    position: 'absolute',
+    right: -20,
+    bottom: -6,
+  },
+  ctaTop: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
   },
-  balanceLabel: {
-    fontSize: 11,
-    color: '#6B7280',
-    marginBottom: 4,
-  },
-  balanceAmount: {
-    fontSize: 22,
-    fontWeight: '700',
-  },
-  balanceSub: {
-    fontSize: 11,
-    marginTop: 4,
-    fontWeight: '500',
-  },
-  statusPill: {
-    flexDirection: 'row',
+  ctaIconBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 4,
+    justifyContent: 'center',
   },
-  statusText: {
-    fontSize: 11,
-    fontWeight: '600',
+  ctaArrowBadge: {
+    width: 34,
+    height: 34,
+    borderRadius: 12,
+    backgroundColor: 'rgba(255,255,255,0.16)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ctaEyebrow: {
+    fontFamily: Fonts.bodyExtraBold,
+    fontSize: 10.5,
+    letterSpacing: 1,
+    color: 'rgba(255,255,255,0.72)',
+    marginTop: 22,
+  },
+  ctaTitle: {
+    fontFamily: Fonts.display,
+    fontSize: 26,
+    color: '#FFFFFF',
+    marginTop: 4,
+  },
+  ctaSub: {
+    fontFamily: Fonts.bodyMedium,
+    fontSize: 12.5,
+    color: 'rgba(255,255,255,0.82)',
+    marginTop: 6,
+    lineHeight: 18,
+    maxWidth: '86%',
   },
   section: {
-    marginTop: 24,
-    paddingHorizontal: 16,
+    marginTop: Spacing.xxl,
+    paddingBottom: Spacing.xxl,
   },
   sectionTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#9CA3AF',
+    fontFamily: Fonts.bodyExtraBold,
+    fontSize: 11,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 12,
-    paddingHorizontal: 4,
   },
-  quickActions: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  qaBtn: {
-    width: '23%',
-    alignItems: 'center',
-    gap: 8,
-    backgroundColor: '#F9FAFB',
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 0.5,
-    borderColor: '#E5E7EB',
-  },
-  qaIconContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  qaLabel: {
-    fontSize: 10,
-    color: '#6B7280',
-    textAlign: 'center',
-    fontWeight: '500',
-  },
-  activityList: {
-    gap: 10,
+  emptyActivity: {
+    fontFamily: Fonts.body,
+    fontSize: 12.5,
+    lineHeight: 18,
   },
   activityItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
-    borderRadius: 12,
-    borderWidth: 0.5,
+    borderRadius: Radius.md,
+    borderWidth: 1,
     gap: 12,
   },
   actIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: 38,
+    height: 38,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -267,12 +225,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   actTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13.5,
   },
   actSubtitle: {
+    fontFamily: Fonts.body,
     fontSize: 11,
-    color: '#6B7280',
     marginTop: 1,
   },
   actBadge: {
@@ -281,7 +239,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   actBadgeText: {
+    fontFamily: Fonts.bodyBold,
     fontSize: 10,
-    fontWeight: '700',
   },
 });
