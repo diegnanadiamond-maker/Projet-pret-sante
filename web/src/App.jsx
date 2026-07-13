@@ -31,8 +31,18 @@ const MOCK_LOGS = [
 
 function App() {
   // --- AUTH & GLOBAL STATE ---
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userRole, setUserRole] = useState(null); // 'user', 'admin', 'bank'
+  // Restaure une éventuelle session client mémorisée ("Se souvenir de moi")
+  const savedSession = (() => {
+    try {
+      const s = localStorage.getItem('pretSanteSession');
+      return s ? JSON.parse(s) : null;
+    } catch {
+      return null;
+    }
+  })();
+  const [isLoggedIn, setIsLoggedIn] = useState(!!savedSession);
+  const [userRole, setUserRole] = useState(savedSession ? 'user' : null); // 'user', 'admin', 'bank'
+  const [clientProfile, setClientProfile] = useState(savedSession); // infos du client connecté
   const [activeTab, setActiveTab] = useState('dashboard');
   const [toast, setToast] = useState(null);
 
@@ -79,11 +89,14 @@ function App() {
   const kycPercentage = Math.round((Object.values(kycDocs).filter(Boolean).length / 4) * 100);
 
   // --- ACTIONS ---
-  const handleLogin = (role) => {
+  const handleLogin = (role, profile = null) => {
     setUserRole(role);
+    setClientProfile(profile);
     setIsLoggedIn(true);
     setActiveTab('dashboard');
-    showToast(`Session pilotage active : ${role.toUpperCase()}`);
+    showToast(profile
+      ? `Bienvenue ${profile.fullName.split(' ')[0]} !`
+      : `Session pilotage active : ${role.toUpperCase()}`);
   };
 
   const handleRoleSwitch = (role) => {
@@ -95,7 +108,9 @@ function App() {
   const handleLogout = () => {
     setIsLoggedIn(false);
     setUserRole(null);
+    setClientProfile(null);
     setActiveTab('dashboard');
+    localStorage.removeItem('pretSanteSession');
   };
 
   const navigateToTab = (id) => {
@@ -206,6 +221,7 @@ function App() {
         activeTab={activeTab}
         navigateToTab={navigateToTab}
         handleLogout={handleLogout}
+        clientProfile={clientProfile}
       />
 
       <main className="app-main-content">
@@ -280,7 +296,7 @@ function App() {
             ) : userRole === 'bank' ? (
               <BankDashboard showToast={showToast} />
             ) : (
-              <UserDashboard navigateToTab={navigateToTab} kycPercentage={kycPercentage} showToast={showToast} />
+              <UserDashboard navigateToTab={navigateToTab} kycPercentage={kycPercentage} showToast={showToast} clientProfile={clientProfile} />
             )
           )}
           {(activeTab === 'requests' || activeTab === 'risk') && <BankDashboard showToast={showToast} />}
@@ -538,68 +554,335 @@ function App() {
 
 // --- SUB-COMPONENTS ---
 
-const LoginView = ({ onLogin }) => (
-  <div className="login-gateway animate-fade-in">
-    <div className="gateway-overlay"></div>
-    <div className="login-card-enterprise glass-panel">
-      <div className="brand-header">
-        <div className="brand-logo-main">
-          <div className="brand-icon-wrapper-large"><i className="ti ti-heart-rate-monitor"></i></div>
-          <span>Prêt Santé</span>
-        </div>
-        <div className="gateway-status">
-          <span className="status-dot online"></span>
-          Interface de Pilotage v2.1
-        </div>
-      </div>
+// --- HELPERS AUTH CLIENT (mock localStorage — remplaçable par une vraie API/bcrypt) ---
+const CLIENTS_KEY = 'pretSanteClients';
 
-      <div className="login-intro">
-        <h2>Portail d'Accès Sécurisé</h2>
-        <p>Veuillez sélectionner votre espace de travail pour accéder aux outils de gestion.</p>
-      </div>
+const getStoredClients = () => {
+  try {
+    return JSON.parse(localStorage.getItem(CLIENTS_KEY)) || [];
+  } catch {
+    return [];
+  }
+};
+const saveStoredClients = (clients) => localStorage.setItem(CLIENTS_KEY, JSON.stringify(clients));
 
-      <div className="role-grid-enterprise">
-        <div className="role-card admin" onClick={() => onLogin('admin')}>
-          <div className="role-card-icon"><i className="ti ti-shield-lock"></i></div>
-          <div className="role-card-body">
-            <h3>Super Administrateur</h3>
-            <p>Contrôle total, monitoring réseau et logs de sécurité.</p>
+// Hash SIMULÉ — non sécurisé, uniquement pour la démo frontend.
+// En production : hash bcrypt côté backend, jamais en clair dans le navigateur.
+const mockHash = (pwd) => `mock$${btoa(unescape(encodeURIComponent(pwd)))}`;
+
+const isEmailValid = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+// Score de force du mot de passe : 0 (vide) à 4 (excellent)
+const passwordScore = (pwd) => {
+  let score = 0;
+  if (pwd.length >= 8) score++;
+  if (/[A-Z]/.test(pwd)) score++;
+  if (/[0-9]/.test(pwd)) score++;
+  if (/[^A-Za-z0-9]/.test(pwd)) score++;
+  return score;
+};
+const STRENGTH_LABELS = ['Très faible', 'Faible', 'Moyen', 'Fort', 'Excellent'];
+const STRENGTH_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#22c55e', '#16a34a'];
+
+const LoginView = ({ onLogin }) => {
+  const [mode, setMode] = useState('welcome'); // 'welcome' | 'register' | 'login'
+  const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [reg, setReg] = useState({ fullName: '', email: '', phone: '', password: '', confirm: '', cgu: false });
+  const [log, setLog] = useState({ email: '', password: '', remember: false });
+
+  const switchMode = (m) => {
+    setError('');
+    setInfo('');
+    setMode(m);
+  };
+
+  const handleRegister = (e) => {
+    e.preventDefault();
+    setError('');
+    const { fullName, email, phone, password, confirm, cgu } = reg;
+
+    if (!fullName.trim() || !email.trim() || !phone.trim() || !password) {
+      setError('Veuillez remplir tous les champs obligatoires.');
+      return;
+    }
+    if (!isEmailValid(email)) {
+      setError('Adresse email invalide.');
+      return;
+    }
+    if (passwordScore(password) < 2) {
+      setError('Mot de passe trop faible (min. 8 caractères, avec chiffres et majuscules).');
+      return;
+    }
+    if (password !== confirm) {
+      setError('Les deux mots de passe ne correspondent pas.');
+      return;
+    }
+    if (!cgu) {
+      setError("Vous devez accepter les conditions générales d'utilisation.");
+      return;
+    }
+
+    const clients = getStoredClients();
+    if (clients.some((c) => c.email === email.trim().toLowerCase())) {
+      setError('Un compte existe déjà avec cette adresse email.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const now = new Date().toISOString();
+    const newClient = {
+      id: `client_${Date.now()}`,
+      fullName: fullName.trim(),
+      email: email.trim().toLowerCase(),
+      phone: phone.trim(),
+      password: mockHash(password),
+      createdAt: now,
+      lastLogin: now,
+    };
+    saveStoredClients([...clients, newClient]);
+
+    setTimeout(() => {
+      setIsSubmitting(false);
+      // eslint-disable-next-line no-unused-vars
+      const { password: _pwd, ...profile } = newClient;
+      onLogin('user', profile);
+    }, 700);
+  };
+
+  const handleClientLogin = (e) => {
+    e.preventDefault();
+    setError('');
+    setInfo('');
+    const { email, password, remember } = log;
+
+    if (!email.trim() || !password) {
+      setError('Veuillez saisir votre email et votre mot de passe.');
+      return;
+    }
+
+    const clients = getStoredClients();
+    const client = clients.find((c) => c.email === email.trim().toLowerCase());
+    if (!client || client.password !== mockHash(password)) {
+      setError('Email ou mot de passe incorrect.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    const updated = { ...client, lastLogin: new Date().toISOString() };
+    saveStoredClients(clients.map((c) => (c.id === client.id ? updated : c)));
+    // eslint-disable-next-line no-unused-vars
+    const { password: _pwd, ...profile } = updated;
+
+    if (remember) {
+      localStorage.setItem('pretSanteSession', JSON.stringify(profile));
+    } else {
+      localStorage.removeItem('pretSanteSession');
+    }
+
+    setTimeout(() => {
+      setIsSubmitting(false);
+      onLogin('user', profile);
+    }, 700);
+  };
+
+  const regScore = passwordScore(reg.password);
+
+  return (
+    <div className="login-gateway animate-fade-in">
+      <div className="gateway-overlay"></div>
+      <div className={`login-card-enterprise glass-panel ${mode !== 'welcome' ? 'auth-compact' : ''}`}>
+        <div className="brand-header">
+          <div className="brand-logo-main">
+            <div className="brand-icon-wrapper-large"><i className="ti ti-heart-rate-monitor"></i></div>
+            <span>Prêt Santé</span>
           </div>
-          <div className="role-card-arrow"><i className="ti ti-chevron-right"></i></div>
-        </div>
-
-        <div className="role-card bank" onClick={() => onLogin('bank')}>
-          <div className="role-card-icon"><i className="ti ti-building-bank"></i></div>
-          <div className="role-card-body">
-            <h3>Établissement Bancaire</h3>
-            <p>Gestion des risques, validation KYC et déblocage de fonds.</p>
+          <div className="gateway-status">
+            <span className="status-dot online"></span>
+            Espace Client Sécurisé
           </div>
-          <div className="role-card-arrow"><i className="ti ti-chevron-right"></i></div>
         </div>
 
-        <div className="role-card user" onClick={() => onLogin('user')}>
-          <div className="role-card-icon"><i className="ti ti-user-circle"></i></div>
-          <div className="role-card-body">
-            <h3>Espace Client</h3>
-            <p>Suivi de santé financière, simulations et formalités.</p>
+        {/* ÉCRAN 1 — ACCUEIL */}
+        {mode === 'welcome' && (
+          <div className="auth-welcome animate-fade-in">
+            <div className="login-intro">
+              <h2>Bienvenue sur votre espace santé</h2>
+              <p>Financez vos soins en toute sérénité. Connectez-vous ou créez votre compte pour commencer.</p>
+            </div>
+
+            <div className="auth-choice-grid">
+              <button className="auth-choice-card" onClick={() => switchMode('login')}>
+                <div className="ac-icon login"><i className="ti ti-login-2"></i></div>
+                <div className="ac-body">
+                  <h3>Se connecter</h3>
+                  <p>J'ai déjà un compte client Prêt Santé.</p>
+                </div>
+                <i className="ti ti-chevron-right ac-arrow"></i>
+              </button>
+
+              <button className="auth-choice-card primary" onClick={() => switchMode('register')}>
+                <div className="ac-icon register"><i className="ti ti-user-plus"></i></div>
+                <div className="ac-body">
+                  <h3>Créer un compte</h3>
+                  <p>Je suis nouveau et je souhaite m'inscrire.</p>
+                </div>
+                <i className="ti ti-chevron-right ac-arrow"></i>
+              </button>
+            </div>
+
+            <div className="auth-quick-access">
+              <span className="qa-label">Accès professionnel</span>
+              <div className="qa-btns">
+                <button onClick={() => onLogin('bank')}><i className="ti ti-building-bank"></i> Espace Banque</button>
+                <button onClick={() => onLogin('admin')}><i className="ti ti-shield-lock"></i> Administration</button>
+              </div>
+            </div>
           </div>
-          <div className="role-card-arrow"><i className="ti ti-chevron-right"></i></div>
-        </div>
-      </div>
+        )}
 
-      <div className="login-legal">
-        <p>Accès strictement réservé aux personnels autorisés. Les activités de pilotage sont journalisées.</p>
-        <div className="legal-links">
-          <span>Mentions Légales</span>
-          <span className="dot-sep"></span>
-          <span>Sécurité & Confidentialité</span>
+        {/* ÉCRAN 2 — INSCRIPTION */}
+        {mode === 'register' && (
+          <form className="auth-form animate-slide-up" onSubmit={handleRegister}>
+            <button type="button" className="auth-back-btn" onClick={() => switchMode('welcome')}>
+              <i className="ti ti-arrow-left"></i> Retour
+            </button>
+            <div className="auth-form-head">
+              <h2>Créer votre compte</h2>
+              <p>Rejoignez Prêt Santé en quelques secondes.</p>
+            </div>
+
+            {error && <div className="auth-error"><i className="ti ti-alert-triangle"></i><span>{error}</span></div>}
+
+            <div className="auth-fields">
+              <div className="auth-field">
+                <label>Nom complet</label>
+                <div className="auth-input-wrap">
+                  <i className="ti ti-user"></i>
+                  <input type="text" placeholder="Ex: Awa Koné" value={reg.fullName} onChange={(e) => setReg({ ...reg, fullName: e.target.value })} />
+                </div>
+              </div>
+              <div className="auth-field">
+                <label>Adresse email</label>
+                <div className="auth-input-wrap">
+                  <i className="ti ti-mail"></i>
+                  <input type="email" placeholder="awa@email.com" value={reg.email} onChange={(e) => setReg({ ...reg, email: e.target.value })} />
+                </div>
+              </div>
+              <div className="auth-field">
+                <label>Téléphone</label>
+                <div className="auth-input-wrap">
+                  <i className="ti ti-phone"></i>
+                  <input type="tel" placeholder="+225 07 00 00 00 00" value={reg.phone} onChange={(e) => setReg({ ...reg, phone: e.target.value })} />
+                </div>
+              </div>
+              <div className="auth-field">
+                <label>Mot de passe</label>
+                <div className="auth-input-wrap">
+                  <i className="ti ti-lock"></i>
+                  <input type="password" placeholder="••••••••" value={reg.password} onChange={(e) => setReg({ ...reg, password: e.target.value })} />
+                </div>
+                {reg.password && (
+                  <div className="password-strength">
+                    <div className="ps-bars">
+                      {[0, 1, 2, 3].map((i) => (
+                        <span key={i} className="ps-bar" style={{ background: i < regScore ? STRENGTH_COLORS[regScore] : 'var(--ps-empty, #e2e8f0)' }}></span>
+                      ))}
+                    </div>
+                    <span className="ps-label" style={{ color: STRENGTH_COLORS[regScore] }}>{STRENGTH_LABELS[regScore]}</span>
+                  </div>
+                )}
+              </div>
+              <div className="auth-field">
+                <label>Confirmer le mot de passe</label>
+                <div className="auth-input-wrap">
+                  <i className="ti ti-lock-check"></i>
+                  <input type="password" placeholder="••••••••" value={reg.confirm} onChange={(e) => setReg({ ...reg, confirm: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            <label className="auth-checkbox">
+              <input type="checkbox" checked={reg.cgu} onChange={(e) => setReg({ ...reg, cgu: e.target.checked })} />
+              <span>J'accepte les <b>conditions générales d'utilisation</b> et la politique de confidentialité.</span>
+            </label>
+
+            <button type="submit" className={`auth-submit ${isSubmitting ? 'loading' : ''}`} disabled={isSubmitting}>
+              {isSubmitting ? <><i className="ti ti-loader-2 animate-spin"></i> Création...</> : <>Créer mon compte <i className="ti ti-arrow-right"></i></>}
+            </button>
+
+            <p className="auth-switch-line">
+              Déjà inscrit ? <button type="button" onClick={() => switchMode('login')}>Se connecter</button>
+            </p>
+          </form>
+        )}
+
+        {/* ÉCRAN 3 — CONNEXION */}
+        {mode === 'login' && (
+          <form className="auth-form animate-slide-up" onSubmit={handleClientLogin}>
+            <button type="button" className="auth-back-btn" onClick={() => switchMode('welcome')}>
+              <i className="ti ti-arrow-left"></i> Retour
+            </button>
+            <div className="auth-form-head">
+              <h2>Connexion</h2>
+              <p>Accédez à votre espace santé personnel.</p>
+            </div>
+
+            {error && <div className="auth-error"><i className="ti ti-alert-triangle"></i><span>{error}</span></div>}
+            {info && <div className="auth-info"><i className="ti ti-info-circle"></i><span>{info}</span></div>}
+
+            <div className="auth-fields">
+              <div className="auth-field">
+                <label>Adresse email</label>
+                <div className="auth-input-wrap">
+                  <i className="ti ti-mail"></i>
+                  <input type="email" placeholder="awa@email.com" value={log.email} onChange={(e) => setLog({ ...log, email: e.target.value })} />
+                </div>
+              </div>
+              <div className="auth-field">
+                <label>Mot de passe</label>
+                <div className="auth-input-wrap">
+                  <i className="ti ti-lock"></i>
+                  <input type="password" placeholder="••••••••" value={log.password} onChange={(e) => setLog({ ...log, password: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            <div className="auth-form-row">
+              <label className="auth-checkbox inline">
+                <input type="checkbox" checked={log.remember} onChange={(e) => setLog({ ...log, remember: e.target.checked })} />
+                <span>Se souvenir de moi</span>
+              </label>
+              <button type="button" className="auth-link" onClick={() => { setError(''); setInfo('Un lien de réinitialisation a été envoyé à votre adresse (simulation).'); }}>
+                Mot de passe oublié ?
+              </button>
+            </div>
+
+            <button type="submit" className={`auth-submit ${isSubmitting ? 'loading' : ''}`} disabled={isSubmitting}>
+              {isSubmitting ? <><i className="ti ti-loader-2 animate-spin"></i> Connexion...</> : <>Se connecter <i className="ti ti-arrow-right"></i></>}
+            </button>
+
+            <p className="auth-switch-line">
+              Pas encore de compte ? <button type="button" onClick={() => switchMode('register')}>Créer un compte</button>
+            </p>
+          </form>
+        )}
+
+        <div className="login-legal">
+          <div className="legal-links">
+            <span>Mentions Légales</span>
+            <span className="dot-sep"></span>
+            <span>Sécurité &amp; Confidentialité</span>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
-const Sidebar = ({ userRole, activeTab, navigateToTab, handleLogout }) => (
+const Sidebar = ({ userRole, activeTab, navigateToTab, handleLogout, clientProfile }) => (
   <aside className="app-sidebar">
     <div className="sidebar-brand">
       <div className="brand-icon-wrapper mini"><i className="ti ti-heart-rate-monitor"></i></div>
@@ -657,10 +940,20 @@ const Sidebar = ({ userRole, activeTab, navigateToTab, handleLogout }) => (
     </div>
     <div className="sidebar-footer">
       <div className="user-profile-summary">
-        <div className="avatar-mini">{userRole ? userRole[0].toUpperCase() : 'A'}</div>
+        <div className="avatar-mini">
+          {userRole === 'user'
+            ? (clientProfile?.fullName ? clientProfile.fullName.trim()[0].toUpperCase() : 'C')
+            : (userRole ? userRole[0].toUpperCase() : 'A')}
+        </div>
         <div className="u-info">
-          <strong>{userRole === 'admin' ? 'Super Admin' : userRole === 'bank' ? 'SGCI Ops' : 'K. Adou'}</strong>
-          <span>{userRole ? userRole.toUpperCase() : ''}</span>
+          <strong>
+            {userRole === 'admin'
+              ? 'Super Admin'
+              : userRole === 'bank'
+                ? 'SGCI Ops'
+                : (clientProfile?.fullName || 'Espace Client')}
+          </strong>
+          <span>{userRole === 'user' ? 'CLIENT' : userRole ? userRole.toUpperCase() : ''}</span>
         </div>
         <button className="btn-logout-icon" onClick={handleLogout} title="Déconnexion"><i className="ti ti-logout"></i></button>
       </div>
@@ -1276,10 +1569,22 @@ const BankDashboard = ({ showToast }) => {
   );
 };
 
-const UserDashboard = ({ navigateToTab, kycPercentage }) => (
+const UserDashboard = ({ navigateToTab, kycPercentage, clientProfile }) => {
+  const firstName = clientProfile?.fullName?.split(' ')[0] || 'Assuré';
+  const initials = clientProfile?.fullName
+    ? clientProfile.fullName.split(' ').filter(Boolean).map((n) => n[0]).slice(0, 2).join('').toUpperCase()
+    : 'PS';
+  const memberSince = clientProfile?.createdAt
+    ? new Date(clientProfile.createdAt).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+    : '—';
+
+  return (
   <div className="pilotage-view animate-fade-in">
     <div className="view-header">
-      <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Mon Espace Santé</h1>
+      <div className="title-group">
+        <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Bonjour, {firstName} 👋</h1>
+        <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Voici l'état de votre santé financière aujourd'hui.</p>
+      </div>
       <div className="header-actions">
         <button className="btn-premium primary" onClick={() => navigateToTab('simulateur')}><i className="ti ti-plus"></i> Nouveau Prêt</button>
       </div>
@@ -1318,6 +1623,21 @@ const UserDashboard = ({ navigateToTab, kycPercentage }) => (
       </div>
 
       <div className="u-side-panel">
+        <div className="glass-panel client-profile-card p-6 bg-white border border-slate-100 rounded-3xl shadow-sm space-y-4">
+          <div className="cp-head flex items-center gap-4">
+            <div className="cp-avatar">{initials}</div>
+            <div className="cp-meta min-w-0">
+              <strong className="block text-sm font-bold text-slate-800 truncate">{clientProfile?.fullName || 'Compte Assuré'}</strong>
+              <span className="text-xs text-slate-500 truncate block">{clientProfile?.email || 'Session invité'}</span>
+            </div>
+          </div>
+          <div className="cp-info-list">
+            <div className="cp-info-row"><i className="ti ti-phone"></i><span>{clientProfile?.phone || 'Non renseigné'}</span></div>
+            <div className="cp-info-row"><i className="ti ti-calendar-event"></i><span>Membre depuis {memberSince}</span></div>
+            <div className="cp-info-row"><i className="ti ti-circle-check"></i><span className="cp-badge">Compte vérifié</span></div>
+          </div>
+        </div>
+
         <div className="glass-panel kyc-summary-card p-6 bg-white border border-slate-100 rounded-3xl shadow-sm space-y-4 flex flex-col">
           <div className="k-header flex justify-between items-center text-sm font-bold">
             <h3 className="text-sm font-bold text-slate-850 uppercase tracking-wider">Mes Formalités</h3>
@@ -1334,7 +1654,8 @@ const UserDashboard = ({ navigateToTab, kycPercentage }) => (
       </div>
     </div>
   </div>
-);
+  );
+};
 
 const SimulationView = ({ careType, setCareType, amount, setAmount, duration, setDuration, currentSim, formatFCFA, navigateToTab, showToast }) => (
   <div className="pilotage-view animate-fade-in">
