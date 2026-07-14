@@ -1,10 +1,10 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
-import { Home, PlusCircle, Building2, User } from 'lucide-react-native';
+import { Home, Handshake, User } from 'lucide-react-native';
 
 import Colors from '@/constants/Colors';
+import { Fonts } from '@/constants/theme';
 import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -13,49 +13,49 @@ export default function TabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: colors.tint,
-        headerShown: useClientOnlyValue(false, true),
+        headerShown: false,
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.tabIconDefault,
         tabBarStyle: {
+          backgroundColor: colors.surface,
           borderTopWidth: 0.5,
           borderTopColor: colors.border,
-          height: 60,
-          paddingBottom: 8,
+          height: 78,
+          paddingBottom: 14,
           paddingTop: 8,
         },
-        headerStyle: {
-          backgroundColor: colors.secondary,
+        tabBarItemStyle: {
+          paddingVertical: 2,
         },
-        headerTintColor: '#fff',
-        headerTitleStyle: {
-          fontWeight: '600',
+        tabBarLabelStyle: {
+          fontFamily: Fonts.bodyBold,
+          fontSize: 10.5,
+          lineHeight: 13,
         },
-      }}>
+        tabBarIconStyle: {
+          marginBottom: 1,
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
           title: 'Accueil',
-          tabBarIcon: ({ color }) => <Home size={24} color={color} />,
+          tabBarIcon: ({ color, size }) => <Home size={size} color={color} />,
         }}
       />
       <Tabs.Screen
-        name="loan"
+        name="partners"
         options={{
-          title: 'Prêt',
-          tabBarIcon: ({ color }) => <PlusCircle size={24} color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="banks"
-        options={{
-          title: 'Banques',
-          tabBarIcon: ({ color }) => <Building2 size={24} color={color} />,
+          title: 'Partenaires',
+          tabBarIcon: ({ color, size }) => <Handshake size={size} color={color} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: 'Profil',
-          tabBarIcon: ({ color }) => <User size={24} color={color} />,
+          tabBarIcon: ({ color, size }) => <User size={size} color={color} />,
         }}
       />
     </Tabs>

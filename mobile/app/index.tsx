@@ -1,80 +1,136 @@
-import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { Link, useRouter } from 'expo-router';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  Dimensions,
+  ImageBackground,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
+import { ScrollView } from 'react-native';
+import { useRouter } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
-import { HeartPulse, Building2, ShieldCheck, ArrowRight } from 'lucide-react-native';
+import { HeartPulse, Building2, ShieldCheck } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
+import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/components/useColorScheme';
+import Button from '@/components/ui/Button';
+import PulseLine from '@/components/ui/PulseLine';
+
+const { width } = Dimensions.get('window');
+const AUTOPLAY_INTERVAL = 3800;
+
+const SLIDES = [
+  {
+    icon: HeartPulse,
+    tag: '01 — Soins',
+    title: 'Vos soins financés en 48h',
+    body: 'Dentaire, accouchement, bilans, chirurgie — avancez sans attendre votre prochaine paie.',
+  },
+  {
+    icon: Building2,
+    tag: '02 — Banques',
+    title: 'Le meilleur taux, comparé pour vous',
+    body: 'Nos partenaires bancaires se disputent votre dossier. Vous choisissez la meilleure offre.',
+  },
+  {
+    icon: ShieldCheck,
+    tag: '03 — Sécurité',
+    title: 'Identité vérifiée, données protégées',
+    body: 'Vérification en quelques minutes, conforme aux normes locales de confidentialité.',
+  },
+];
 
 export default function OnboardingScreen() {
   const router = useRouter();
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const [slide, setSlide] = useState(0);
+  const scrollRef = useRef<ScrollView>(null);
+
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const i = Math.round(e.nativeEvent.contentOffset.x / width);
+    if (i !== slide) setSlide(i);
+  };
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setSlide((prev) => {
+        const next = (prev + 1) % SLIDES.length;
+        scrollRef.current?.scrollTo({ x: next * width, animated: true });
+        return next;
+      });
+    }, AUTOPLAY_INTERVAL);
+    return () => clearInterval(timer);
+  }, []);
 
   return (
-    <View style={styles.container}>
-      <LinearGradient
-        colors={['#0F6E56', '#1D9E75', '#5DCAA5']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <StatusBar style="light" />
+      <ImageBackground
+        source={require('../assets/images/1.png')}
         style={styles.hero}
+        imageStyle={styles.heroImage}
+        resizeMode="cover"
       >
-        <View style={styles.logoCircle}>
-          <HeartPulse size={36} color="#fff" />
-        </View>
-        <Text style={styles.title}>Prêt Santé</Text>
-        <Text style={styles.subtitle}>
-          Financement rapide pour vos soins médicaux, en quelques étapes simples.
-        </Text>
-      </LinearGradient>
+        <LinearGradient
+          colors={['rgba(11,30,61,0.5)', 'rgba(21,94,239,0.78)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={StyleSheet.absoluteFillObject}
+        />
+        <View style={styles.heroContent}>
+          <Text style={styles.heroTitle}>
+            La santé n'attend pas.{'\n'}
+            <Text style={[styles.heroTitleItalic, { color: colors.heroAccent }]}>Votre financement non plus.</Text>
+          </Text>
 
-      <ScrollView contentContainerStyle={styles.body}>
-        <View style={styles.featRow}>
-          <View style={[styles.featIcon, { backgroundColor: '#E1F5EE' }]}>
-            <HeartPulse size={20} color="#0F6E56" />
-          </View>
-          <View style={styles.featText}>
-            <Text style={[styles.featTitle, { color: colors.text }]}>Soins financés rapidement</Text>
-            <Text style={styles.featDesc}>Dentaire, accouchement, bilans…</Text>
-          </View>
+          <PulseLine color={colors.heroAccent} width={140} height={30} />
         </View>
+      </ImageBackground>
 
-        <View style={styles.featRow}>
-          <View style={[styles.featIcon, { backgroundColor: '#E6F1FB' }]}>
-            <Building2 size={20} color="#185FA5" />
+      <ScrollView
+        ref={scrollRef}
+        horizontal
+        pagingEnabled
+        showsHorizontalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        style={styles.slider}
+      >
+        {SLIDES.map((s, i) => (
+          <View key={i} style={[styles.slide, { width }]}>
+            <View style={styles.slideIcon}>
+              <s.icon size={30} color={colors.primary} />
+            </View>
+            <Text style={[styles.slideTag, { color: colors.primary }]}>{s.tag}</Text>
+            <Text style={[styles.slideTitle, { color: colors.text }]}>{s.title}</Text>
+            <Text style={[styles.slideBody, { color: colors.textMuted }]}>{s.body}</Text>
           </View>
-          <View style={styles.featText}>
-            <Text style={[styles.featTitle, { color: colors.text }]}>Banques partenaires</Text>
-            <Text style={styles.featDesc}>Comparez et choisissez la meilleure offre</Text>
-          </View>
-        </View>
-
-        <View style={styles.featRow}>
-          <View style={[styles.featIcon, { backgroundColor: '#FAEEDA' }]}>
-            <ShieldCheck size={20} color="#854F0B" />
-          </View>
-          <View style={styles.featText}>
-            <Text style={[styles.featTitle, { color: colors.text }]}>100% sécurisé</Text>
-            <Text style={styles.featDesc}>Données chiffrées, conformité locale</Text>
-          </View>
-        </View>
+        ))}
       </ScrollView>
 
-      <View style={styles.footer}>
-        <TouchableOpacity 
-          style={styles.btnPrimary}
-          onPress={() => router.replace('/(tabs)')}
-        >
-          <Text style={styles.btnPrimaryText}>Créer un compte</Text>
-          <ArrowRight size={18} color="#fff" />
-        </TouchableOpacity>
+      <View style={styles.dots}>
+        {SLIDES.map((_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.dot,
+              { backgroundColor: i === slide ? colors.primary : colors.border, width: i === slide ? 20 : 6 },
+            ]}
+          />
+        ))}
+      </View>
 
-        <TouchableOpacity 
-          style={[styles.btnSecondary, { backgroundColor: colors.card, borderColor: colors.border }]}
-          onPress={() => router.replace('/(tabs)')}
-        >
-          <Text style={[styles.btnSecondaryText, { color: colors.text }]}>J'ai déjà un compte</Text>
-        </TouchableOpacity>
+      <View style={styles.footer}>
+        <Button label="Créer un compte" onPress={() => router.push('/(auth)/register')} />
+        <Button
+          label="J'ai déjà un compte"
+          variant="outline"
+          onPress={() => router.push('/(auth)/login')}
+        />
       </View>
     </View>
   );
@@ -83,97 +139,73 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
   },
   hero: {
-    paddingTop: 80,
-    paddingBottom: 40,
-    paddingHorizontal: 24,
-    alignItems: 'center',
-    gap: 16,
+    paddingTop: 64,
+    paddingBottom: 28,
+    paddingHorizontal: Spacing.lg,
+    borderBottomLeftRadius: Radius.xl,
+    borderBottomRightRadius: Radius.xl,
+    overflow: 'hidden',
   },
-  logoCircle: {
-    width: 72,
-    height: 72,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
+  heroImage: {
+    borderBottomLeftRadius: Radius.xl,
+    borderBottomRightRadius: Radius.xl,
   },
-  title: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#fff',
-    textAlign: 'center',
+  heroContent: {
+    gap: 18,
   },
-  subtitle: {
-    fontSize: 15,
-    color: 'rgba(255,255,255,0.9)',
-    textAlign: 'center',
-    lineHeight: 22,
-    paddingHorizontal: 20,
+  heroTitle: {
+    fontFamily: Fonts.display,
+    fontSize: 30,
+    lineHeight: 37,
+    color: '#FFFFFF',
   },
-  body: {
-    padding: 24,
-    gap: 16,
+  heroTitleItalic: {
+    fontFamily: Fonts.displayItalic,
   },
-  featRow: {
+  slider: {
+    marginTop: 14,
+  },
+  slide: {
+    paddingHorizontal: Spacing.lg,
+    paddingTop: Spacing.md,
+    gap: 10,
+  },
+  slideIcon: {
+    marginBottom: 4,
+  },
+  slideTag: {
+    fontFamily: Fonts.bodyExtraBold,
+    fontSize: 11,
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  slideTitle: {
+    fontFamily: Fonts.display,
+    fontSize: 21,
+    lineHeight: 27,
+  },
+  slideBody: {
+    fontFamily: Fonts.body,
+    fontSize: 13.5,
+    lineHeight: 20,
+    maxWidth: '92%',
+  },
+  dots: {
     flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 16,
-    borderWidth: 0.5,
-    borderColor: '#E5E7EB',
-    gap: 16,
-  },
-  featIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
     justifyContent: 'center',
+    gap: 6,
+    marginTop: 18,
   },
-  featText: {
-    flex: 1,
-  },
-  featTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  featDesc: {
-    fontSize: 12,
-    color: '#6B7280',
-    marginTop: 2,
+  dot: {
+    height: 6,
+    borderRadius: 3,
   },
   footer: {
-    padding: 24,
-    paddingBottom: 40,
+    padding: Spacing.lg,
+    paddingBottom: Spacing.xl,
     gap: 12,
-  },
-  btnPrimary: {
-    backgroundColor: '#1D9E75',
-    paddingVertical: 16,
-    borderRadius: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-  },
-  btnPrimaryText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  btnSecondary: {
-    paddingVertical: 14,
-    borderRadius: 16,
-    borderWidth: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnSecondaryText: {
-    fontSize: 15,
-    fontWeight: '500',
+    marginTop: 'auto',
   },
 });

@@ -1,99 +1,155 @@
 import React from 'react';
-import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { User, IdCard, FileText, Building2, Stethoscope, Settings, Check, Upload, ChevronRight } from 'lucide-react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import {
+  IdCard,
+  FileText,
+  Building2,
+  Stethoscope,
+  Settings,
+  Check,
+  Upload,
+  ChevronRight,
+  LogOut,
+  BellRing,
+  ShieldCheck,
+} from 'lucide-react-native';
 import Colors from '@/constants/Colors';
+import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/components/useColorScheme';
-
 import { useData } from '@/context/DataContext';
+import Screen from '@/components/ui/Screen';
 
 export default function ProfileScreen() {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-  const { kycDocs, setKycDocs, kycPct } = useData();
+  const router = useRouter();
+  const colors = Colors[useColorScheme() ?? 'light'];
+  const {
+    fullName,
+    phone,
+    email,
+    kycDocs,
+    setKycDocs,
+    kycPct,
+    identityVerified,
+    setIdentityVerified,
+    setIsAuthenticated,
+  } = useData();
 
   const handleSimulateUpload = (key: keyof typeof kycDocs) => {
     if (!kycDocs[key]) {
-      setKycDocs(prev => ({ ...prev, [key]: true }));
+      setKycDocs((prev) => ({ ...prev, [key]: true }));
     }
   };
 
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    setIdentityVerified(false);
+    setKycDocs({ cni: false, bulletins: false, releve: false, devis: false });
+    router.replace('/(auth)/register');
+  };
+
   return (
-    <ScrollView style={[styles.container, { backgroundColor: colors.background }]}>
+    <Screen>
       <View style={[styles.hero, { backgroundColor: colors.secondary }]}>
         <View style={styles.profileAvatar}>
-          <User size={32} color="#fff" />
+          <Text style={styles.profileAvatarText}>{(fullName.charAt(0) || 'K').toUpperCase()}</Text>
         </View>
-        <Text style={styles.profileName}>Kouamé Adou</Text>
-        <Text style={styles.profileInfo}>koua.adou@email.com · +225 07 00 00 00</Text>
+        <Text style={styles.profileName}>{fullName || 'Kouamé Adou'}</Text>
+        <Text style={styles.profileInfo}>{email || 'vous@exemple.com'} · {phone || '+225 07 00 00 00'}</Text>
+        {identityVerified && (
+          <View style={[styles.verifiedPill, { backgroundColor: colors.success }]}>
+            <ShieldCheck size={12} color="#FFFFFF" />
+            <Text style={styles.verifiedText}>Identité vérifiée</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.kycContainer}>
-        <View style={[styles.kycCard, { borderColor: colors.border, backgroundColor: colors.background }]}>
-          <Text style={styles.kycTitle}>Profil KYC complété</Text>
-          <View style={[styles.progressBar, { backgroundColor: '#F3F4F6' }]}>
+        <View style={[styles.kycCard, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+          <Text style={[styles.kycTitle, { color: colors.textMuted }]}>Coffre de documents</Text>
+          <View style={[styles.progressBar, { backgroundColor: colors.surfaceSunken }]}>
             <View style={[styles.progressFill, { width: `${kycPct}%`, backgroundColor: colors.primary }]} />
           </View>
-          <Text style={[styles.kycPct, { color: colors.primary }]}>{kycPct}% — {kycPct === 100 ? 'Profil complet' : `${Object.values(kycDocs).filter(v => !v).length} documents manquants`}</Text>
+          <Text style={[styles.kycPct, { color: colors.primary }]}>
+            {kycPct}% — {kycPct === 100 ? 'Dossier complet' : `${Object.values(kycDocs).filter((v) => !v).length} documents manquants`}
+          </Text>
         </View>
       </View>
 
       <View style={styles.menuList}>
-        <MenuItem 
+        <MenuItem
           icon={<IdCard size={20} color={colors.primary} />}
           title="Carte Nationale d'Identité"
-          subtitle={kycDocs.cni ? "Recto-verso · Vérifié" : "Document manquant"}
-          status={kycDocs.cni ? "done" : "upload"}
+          subtitle={kycDocs.cni ? 'Recto-verso · Vérifié' : 'Document manquant'}
+          status={kycDocs.cni ? 'done' : 'upload'}
           onPress={() => handleSimulateUpload('cni')}
           colors={colors}
         />
-        <MenuItem 
+        <MenuItem
           icon={<FileText size={20} color={colors.primary} />}
           title="Bulletins de salaire"
-          subtitle={kycDocs.bulletins ? "3 derniers mois · Vérifié" : "Document manquant"}
-          status={kycDocs.bulletins ? "done" : "upload"}
+          subtitle={kycDocs.bulletins ? '3 derniers mois · Vérifié' : 'Document manquant'}
+          status={kycDocs.bulletins ? 'done' : 'upload'}
           onPress={() => handleSimulateUpload('bulletins')}
           colors={colors}
         />
-        <MenuItem 
-          icon={<Building2 size={20} color={kycDocs.releve ? colors.primary : "#854F0B"} />}
+        <MenuItem
+          icon={<Building2 size={20} color={kycDocs.releve ? colors.primary : colors.accentSky} />}
           title="Relevé bancaire"
-          subtitle={kycDocs.releve ? "Fourni · Vérifié" : "Non fourni · En attente"}
-          status={kycDocs.releve ? "done" : "upload"}
+          subtitle={kycDocs.releve ? 'Fourni · Vérifié' : 'Non fourni · En attente'}
+          status={kycDocs.releve ? 'done' : 'upload'}
           onPress={() => handleSimulateUpload('releve')}
           colors={colors}
         />
-        <MenuItem 
-          icon={<Stethoscope size={20} color={kycDocs.devis ? colors.primary : "#854F0B"} />}
+        <MenuItem
+          icon={<Stethoscope size={20} color={kycDocs.devis ? colors.primary : colors.accentSky} />}
           title="Devis médical"
-          subtitle={kycDocs.devis ? "Fourni · Vérifié" : "Non fourni · En attente"}
-          status={kycDocs.devis ? "done" : "upload"}
+          subtitle={kycDocs.devis ? 'Fourni · Vérifié' : 'Non fourni · En attente'}
+          status={kycDocs.devis ? 'done' : 'upload'}
           onPress={() => handleSimulateUpload('devis')}
           colors={colors}
         />
-        <View style={{ height: 16 }} />
-        <MenuItem 
-          icon={<Settings size={20} color="#6B7280" />}
-          title="Paramètres du compte"
-          subtitle="Sécurité, notifications"
+
+        <View style={{ height: 8 }} />
+
+        <MenuItem
+          icon={<BellRing size={20} color={colors.textMuted} />}
+          title="Notifications"
+          subtitle="SMS et rappels d'échéances"
           status="chevron"
           colors={colors}
         />
+        <MenuItem
+          icon={<Settings size={20} color={colors.textMuted} />}
+          title="Paramètres du compte"
+          subtitle="Sécurité, mot de passe"
+          status="chevron"
+          colors={colors}
+        />
+
+        <TouchableOpacity
+          style={[styles.logoutBtn, { borderColor: colors.dangerSoft, backgroundColor: colors.dangerSoft }]}
+          onPress={handleLogout}
+        >
+          <LogOut size={18} color={colors.danger} />
+          <Text style={[styles.logoutText, { color: colors.danger }]}>Se déconnecter</Text>
+        </TouchableOpacity>
       </View>
-    </ScrollView>
+    </Screen>
   );
 }
 
 function MenuItem({ icon, title, subtitle, status, onPress, colors }: any) {
   return (
-    <TouchableOpacity 
-      style={[styles.menuItem, { backgroundColor: '#F9FAFB', borderColor: colors.border }]}
+    <TouchableOpacity
+      style={[styles.menuItem, { backgroundColor: colors.surface, borderColor: colors.border }]}
       onPress={onPress}
       disabled={status === 'done' || status === 'chevron'}
     >
       <View style={styles.menuLead}>{icon}</View>
       <View style={styles.menuText}>
         <Text style={[styles.menuTitle, { color: colors.text }]}>{title}</Text>
-        <Text style={styles.menuSubtitle}>{subtitle}</Text>
+        <Text style={[styles.menuSubtitle, { color: colors.textMuted }]}>{subtitle}</Text>
       </View>
       <View style={styles.menuTrail}>
         {status === 'done' && (
@@ -101,62 +157,75 @@ function MenuItem({ icon, title, subtitle, status, onPress, colors }: any) {
             <Check size={12} color="#fff" />
           </View>
         )}
-        {status === 'upload' && <Upload size={18} color="#6B7280" />}
-        {status === 'chevron' && <ChevronRight size={18} color="#6B7280" />}
+        {status === 'upload' && <Upload size={18} color={colors.textMuted} />}
+        {status === 'chevron' && <ChevronRight size={18} color={colors.textMuted} />}
       </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   hero: {
-    paddingTop: 30,
-    paddingBottom: 50,
+    paddingTop: 24,
+    paddingBottom: 46,
     paddingHorizontal: 20,
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
+    borderBottomLeftRadius: Radius.xl,
+    borderBottomRightRadius: Radius.xl,
   },
   profileAvatar: {
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    width: 68,
+    height: 68,
+    borderRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.4)',
+    borderColor: 'rgba(255,255,255,0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
   },
+  profileAvatarText: {
+    fontFamily: Fonts.displayBold,
+    fontSize: 24,
+    color: '#fff',
+  },
   profileName: {
-    fontSize: 20,
-    fontWeight: '700',
+    fontFamily: Fonts.display,
+    fontSize: 19,
     color: '#fff',
   },
   profileInfo: {
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.8)',
+    fontFamily: Fonts.body,
+    fontSize: 11.5,
+    color: 'rgba(255,255,255,0.75)',
+  },
+  verifiedPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 999,
+    marginTop: 8,
+  },
+  verifiedText: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 10.5,
+    color: '#FFFFFF',
   },
   kycContainer: {
     paddingHorizontal: 16,
-    marginTop: -25,
+    marginTop: -26,
   },
   kycCard: {
     padding: 16,
-    borderRadius: 16,
-    borderWidth: 0.5,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
-    elevation: 2,
+    borderRadius: Radius.md,
+    borderWidth: 1,
   },
   kycTitle: {
-    fontSize: 12,
-    color: '#6B7280',
-    fontWeight: '600',
+    fontFamily: Fonts.bodyBold,
+    fontSize: 11.5,
     marginBottom: 10,
   },
   progressBar: {
@@ -170,21 +239,22 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   kycPct: {
+    fontFamily: Fonts.bodyBold,
     fontSize: 11,
     textAlign: 'right',
-    fontWeight: '600',
   },
   menuList: {
     padding: 16,
     gap: 8,
     marginTop: 16,
+    paddingBottom: 40,
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 14,
-    borderRadius: 14,
-    borderWidth: 0.5,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
     gap: 14,
   },
   menuLead: {
@@ -195,12 +265,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   menuTitle: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13.5,
   },
   menuSubtitle: {
+    fontFamily: Fonts.body,
     fontSize: 11,
-    color: '#6B7280',
     marginTop: 1,
   },
   menuTrail: {
@@ -213,5 +283,19 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  logoutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    padding: 14,
+    borderRadius: Radius.sm,
+    borderWidth: 1,
+    marginTop: 12,
+  },
+  logoutText: {
+    fontFamily: Fonts.bodyBold,
+    fontSize: 13.5,
   },
 });
