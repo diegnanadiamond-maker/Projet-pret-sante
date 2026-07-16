@@ -113,9 +113,6 @@ function App() {
     setClinicProfile(profile);
     setIsLoggedIn(true);
     setActiveTab('dashboard');
-    showToast(profile
-      ? `Bienvenue · ${profile.clinicName}`
-      : `Session pilotage active : ${role.toUpperCase()}`);
   };
 
   const handleLogout = () => {
@@ -479,18 +476,34 @@ function App() {
 // --- HELPERS AUTH CLINIQUE (mock localStorage — remplaçable par une vraie API/bcrypt) ---
 const CLINICS_KEY = 'pretSanteClinics';
 
-const getStoredClinics = () => {
-  try {
-    return JSON.parse(localStorage.getItem(CLINICS_KEY)) || [];
-  } catch {
-    return [];
-  }
-};
-const saveStoredClinics = (clinics) => localStorage.setItem(CLINICS_KEY, JSON.stringify(clinics));
-
 // Hash SIMULÉ — non sécurisé, uniquement pour la démo frontend.
 // En production : hash bcrypt côté backend, jamais en clair dans le navigateur.
 const mockHash = (pwd) => `mock$${btoa(unescape(encodeURIComponent(pwd)))}`;
+
+// Clinique de démo pré-enregistrée — mock uniquement, pour ne pas avoir à s'inscrire avant de tester.
+const DEMO_CLINIC = {
+  id: 'clinic_demo',
+  clinicName: 'Clinique Avicenne (Démo)',
+  email: 'clinique@pretsante.ci',
+  phone: '+225 27 00 00 00 00',
+  password: mockHash('Clinique123'),
+  createdAt: new Date(0).toISOString(),
+  lastLogin: new Date(0).toISOString(),
+};
+
+const getStoredClinics = () => {
+  try {
+    const clinics = JSON.parse(localStorage.getItem(CLINICS_KEY)) || [];
+    if (!clinics.some((c) => c.email === DEMO_CLINIC.email)) {
+      clinics.push(DEMO_CLINIC);
+      saveStoredClinics(clinics);
+    }
+    return clinics;
+  } catch {
+    return [DEMO_CLINIC];
+  }
+};
+const saveStoredClinics = (clinics) => localStorage.setItem(CLINICS_KEY, JSON.stringify(clinics));
 
 const isEmailValid = (email) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -506,14 +519,40 @@ const passwordScore = (pwd) => {
 const STRENGTH_LABELS = ['Très faible', 'Faible', 'Moyen', 'Fort', 'Excellent'];
 const STRENGTH_COLORS = ['#ef4444', '#f97316', '#f59e0b', '#22c55e', '#16a34a'];
 
+// Identifiants de démo — mock uniquement, à remplacer par une vraie API en production.
+const DEMO_CREDENTIALS = {
+  bank: { email: 'banque@pretsante.ci', password: 'Banque123', label: 'banque partenaire' },
+  admin: { email: 'admin@pretsante.ci', password: 'Admin123', label: 'administrateur' },
+};
+
 const LoginView = ({ onLogin }) => {
-  const [mode, setMode] = useState('welcome'); // 'welcome' | 'register' | 'login'
+  const [mode, setMode] = useState('welcome'); // 'welcome' | 'register' | 'login' | 'bank-login' | 'admin-login'
   const [error, setError] = useState('');
   const [info, setInfo] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [reg, setReg] = useState({ clinicName: '', email: '', phone: '', password: '', confirm: '', cgu: false });
   const [log, setLog] = useState({ email: '', password: '', remember: false });
+  const [proAuth, setProAuth] = useState({ email: '', password: '' });
+
+  const handleProLogin = (e, role) => {
+    e.preventDefault();
+    setError('');
+    const creds = DEMO_CREDENTIALS[role];
+    if (!proAuth.email.trim() || !proAuth.password) {
+      setError('Veuillez saisir votre email et votre mot de passe.');
+      return;
+    }
+    if (proAuth.email.trim().toLowerCase() !== creds.email || proAuth.password !== creds.password) {
+      setError('Email ou mot de passe incorrect.');
+      return;
+    }
+    setIsSubmitting(true);
+    setTimeout(() => {
+      setIsSubmitting(false);
+      onLogin(role);
+    }, 700);
+  };
 
   const switchMode = (m) => {
     setError('');
@@ -621,48 +660,84 @@ const LoginView = ({ onLogin }) => {
             <div className="brand-icon-wrapper-large"><i className="ti ti-heart-rate-monitor"></i></div>
             <span>Prêt Santé</span>
           </div>
-          <div className="gateway-status">
-            <span className="status-dot online"></span>
-            Espace Clinique Sécurisé
-          </div>
         </div>
 
         {/* ÉCRAN 1 — ACCUEIL */}
         {mode === 'welcome' && (
           <div className="auth-welcome animate-fade-in">
             <div className="login-intro">
-              <h2>Bienvenue sur votre espace clinique</h2>
-              <p>Suivez en temps réel les paiements reçus et l'activité de votre établissement. Connectez-vous ou enregistrez votre clinique pour commencer.</p>
+              <h2>Bienvenue sur Prêt Santé</h2>
+              <p>Choisissez votre espace pour accéder à votre connexion dédiée.</p>
             </div>
 
             <div className="auth-choice-grid">
               <button className="auth-choice-card" onClick={() => switchMode('login')}>
-                <div className="ac-icon login"><i className="ti ti-login-2"></i></div>
+                <div className="ac-icon"><i className="ti ti-building-hospital"></i></div>
                 <div className="ac-body">
-                  <h3>Se connecter</h3>
-                  <p>J'ai déjà un compte clinique Prêt Santé.</p>
+                  <h3>Clinique</h3>
+                  <p>Accédez à l'espace de votre établissement.</p>
                 </div>
                 <i className="ti ti-chevron-right ac-arrow"></i>
               </button>
 
-              <button className="auth-choice-card primary" onClick={() => switchMode('register')}>
-                <div className="ac-icon register"><i className="ti ti-building-hospital"></i></div>
+              <button className="auth-choice-card" onClick={() => { setProAuth({ email: '', password: '' }); switchMode('bank-login'); }}>
+                <div className="ac-icon"><i className="ti ti-building-bank"></i></div>
                 <div className="ac-body">
-                  <h3>Enregistrer ma clinique</h3>
-                  <p>Je souhaite inscrire mon établissement.</p>
+                  <h3>Banque</h3>
+                  <p>Accédez à l'espace partenaire bancaire.</p>
                 </div>
                 <i className="ti ti-chevron-right ac-arrow"></i>
               </button>
-            </div>
 
-            <div className="auth-quick-access">
-              <span className="qa-label">Accès professionnel</span>
-              <div className="qa-btns">
-                <button onClick={() => onLogin('bank')}><i className="ti ti-building-bank"></i> Espace Banque</button>
-                <button onClick={() => onLogin('admin')}><i className="ti ti-shield-lock"></i> Administration</button>
-              </div>
+              <button className="auth-choice-card" onClick={() => { setProAuth({ email: '', password: '' }); switchMode('admin-login'); }}>
+                <div className="ac-icon"><i className="ti ti-shield-lock"></i></div>
+                <div className="ac-body">
+                  <h3>Administration</h3>
+                  <p>Accédez à l'espace administrateur.</p>
+                </div>
+                <i className="ti ti-chevron-right ac-arrow"></i>
+              </button>
             </div>
           </div>
+        )}
+
+        {/* ÉCRAN — CONNEXION BANQUE / ADMINISTRATION */}
+        {(mode === 'bank-login' || mode === 'admin-login') && (
+          <form
+            className="auth-form animate-slide-up"
+            onSubmit={(e) => handleProLogin(e, mode === 'bank-login' ? 'bank' : 'admin')}
+          >
+            <button type="button" className="auth-back-btn" onClick={() => switchMode('welcome')}>
+              <i className="ti ti-arrow-left"></i> Retour
+            </button>
+            <div className="auth-form-head">
+              <h2>{mode === 'bank-login' ? 'Espace Banque' : 'Administration'}</h2>
+              <p>Accès réservé aux {mode === 'bank-login' ? 'partenaires bancaires' : 'administrateurs'} de la plateforme.</p>
+            </div>
+
+            {error && <div className="auth-error"><i className="ti ti-alert-triangle"></i><span>{error}</span></div>}
+
+            <div className="auth-fields">
+              <div className="auth-field">
+                <label>Adresse email</label>
+                <div className="auth-input-wrap">
+                  <i className="ti ti-mail"></i>
+                  <input type="email" placeholder="nom@pretsante.ci" value={proAuth.email} onChange={(e) => setProAuth({ ...proAuth, email: e.target.value })} />
+                </div>
+              </div>
+              <div className="auth-field">
+                <label>Mot de passe</label>
+                <div className="auth-input-wrap">
+                  <i className="ti ti-lock"></i>
+                  <input type="password" placeholder="••••••••" value={proAuth.password} onChange={(e) => setProAuth({ ...proAuth, password: e.target.value })} />
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" className={`auth-submit ${isSubmitting ? 'loading' : ''}`} disabled={isSubmitting}>
+              {isSubmitting ? <><i className="ti ti-loader-2 animate-spin"></i> Connexion...</> : <>Se connecter <i className="ti ti-arrow-right"></i></>}
+            </button>
+          </form>
         )}
 
         {/* ÉCRAN 2 — INSCRIPTION */}
@@ -1202,7 +1277,7 @@ const BankOverviewView = ({ navigateToTab }) => {
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
         <div className="glass-panel-premium rounded-3xl p-6 border border-slate-100 shadow-sm">
-          <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center justify-between" style={{ marginBottom: '28px' }}>
             <h3 className="text-lg font-bold text-slate-800">Dossiers prioritaires</h3>
             <button className="text-xs font-bold text-blue-600 hover:text-blue-700" onClick={() => navigateToTab('requests')}>Voir tout</button>
           </div>
@@ -1224,7 +1299,7 @@ const BankOverviewView = ({ navigateToTab }) => {
 
         <div className="flex flex-col gap-6">
           <div className="glass-panel-premium rounded-3xl p-6 border border-slate-100 shadow-sm cursor-pointer hover:-translate-y-0.5 transition-all" onClick={() => navigateToTab('risk')}>
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Répartition des risques</h3>
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider" style={{ marginBottom: '24px' }}>Répartition des risques</h3>
             <div className="flex flex-col gap-3">
               {Object.entries(riskCounts).map(([risk, count]) => (
                 <div key={risk} className="flex items-center justify-between">
@@ -1240,7 +1315,7 @@ const BankOverviewView = ({ navigateToTab }) => {
           </div>
 
           <div className="glass-panel-premium rounded-3xl p-6 border border-slate-100 shadow-sm">
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-4">Décaissements récents</h3>
+            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider" style={{ marginBottom: '24px' }}>Décaissements récents</h3>
             <div className="flex flex-col gap-3">
               <div className="flex justify-between items-center p-3 bg-slate-50 rounded-xl border border-slate-100">
                 <span className="text-xs font-semibold text-slate-700">S. Touré</span>
