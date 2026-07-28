@@ -1,0 +1,6 @@
+1)Chaque client ne peut demander de prêt qu'à sa banque seulement pas une autre. Ex un client SGBCI ne demande qu'à la SGBCI
+2)Les Banques ne paient que les cliniques seulement en fonction de la facture pro-forma (cotation) de prestation le client justifie la demande de prêt avec cela.
+3)Supprimer quel montant vous faut il? 
+4)Ajouter luplaoding de la facture de justif du prix
+5)Il faut des cliniques et Banques partenaires pour le projet certainement inscrite dans notre base pour faciliter les factures et les paiements 
+6)Cahier des charges pour toucher les partenaires et autres
