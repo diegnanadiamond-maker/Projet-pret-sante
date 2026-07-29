@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { IdCard, FileText, Building2, Stethoscope, Check, Upload, ShieldCheck } from 'lucide-react-native';
@@ -14,13 +14,21 @@ import Card from '@/components/ui/Card';
 export default function DocumentsStep() {
   const router = useRouter();
   const colors = Colors[useColorScheme() ?? 'light'];
-  const { kycDocs, setKycDocs, establishment } = useData();
+  const { kycDocs, setKycDocs, establishment, isBanked, selectedOffer } = useData();
+
+  // Client's own bank already holds this on file — mark it fulfilled automatically.
+  // Clients without a bank account (Orange Money Tiktak) never need it at all.
+  useEffect(() => {
+    if (isBanked && !kycDocs.releve) {
+      setKycDocs((prev) => ({ ...prev, releve: true }));
+    }
+  }, [isBanked]);
 
   const toggle = (key: 'releve' | 'devis') => {
     if (!kycDocs[key]) setKycDocs((prev) => ({ ...prev, [key]: true }));
   };
 
-  const ready = kycDocs.releve && kycDocs.devis;
+  const ready = (isBanked ? kycDocs.releve : true) && kycDocs.devis;
 
   return (
     <Screen padded>
@@ -30,13 +38,13 @@ export default function DocumentsStep() {
         Complétez votre <Text style={{ fontFamily: Fonts.displayItalic }}>dossier</Text>
       </Text>
       <Text style={[styles.sub, { color: colors.textMuted }]}>
-        Deux justificatifs suffisent pour ce financement, le reste est déjà dans votre profil vérifié.
+        Un seul justificatif suffit pour ce financement, le reste est déjà dans votre profil vérifié.
       </Text>
 
       <View style={[styles.policyBanner, { backgroundColor: colors.secondarySoft, borderColor: colors.border }]}>
         <ShieldCheck size={16} color={colors.secondary} />
         <Text style={[styles.policyText, { color: colors.text }]}>
-          Par sécurité, la banque verse les fonds directement à{' '}
+          Par sécurité, {selectedOffer?.bank ?? 'votre organisme prêteur'} verse les fonds directement à{' '}
           <Text style={{ fontFamily: Fonts.bodyBold }}>{establishment}</Text>, jamais sur votre compte. La facture
           pro-forma justifie le montant demandé.
         </Text>
@@ -69,27 +77,20 @@ export default function DocumentsStep() {
           </View>
         </Card>
 
-        <TouchableOpacity onPress={() => toggle('releve')} activeOpacity={0.8}>
+        {isBanked && (
           <Card style={styles.row}>
-            <View style={[styles.icon, { backgroundColor: kycDocs.releve ? colors.primarySoft : colors.accentSkySoft }]}>
-              <Building2 size={18} color={kycDocs.releve ? colors.primary : colors.accentSky} />
+            <View style={[styles.icon, { backgroundColor: colors.primarySoft }]}>
+              <Building2 size={18} color={colors.primary} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.rowTitle, { color: colors.text }]}>Relevé bancaire (3 mois)</Text>
-              <Text style={[styles.rowSub, { color: colors.textMuted }]}>{kycDocs.releve ? 'Téléversé' : 'Requis pour ce prêt'}</Text>
+              <Text style={[styles.rowSub, { color: colors.textMuted }]}>Fourni automatiquement par votre banque</Text>
             </View>
-            {kycDocs.releve ? (
-              <View style={[styles.check, { backgroundColor: colors.success }]}>
-                <Check size={12} color="#fff" />
-              </View>
-            ) : (
-              <View style={[styles.uploadPill, { backgroundColor: colors.primary }]}>
-                <Upload size={13} color="#fff" />
-                <Text style={styles.uploadPillText}>Charger</Text>
-              </View>
-            )}
+            <View style={[styles.check, { backgroundColor: colors.success }]}>
+              <Check size={12} color="#fff" />
+            </View>
           </Card>
-        </TouchableOpacity>
+        )}
 
         <TouchableOpacity onPress={() => toggle('devis')} activeOpacity={0.8}>
           <Card style={styles.row}>
