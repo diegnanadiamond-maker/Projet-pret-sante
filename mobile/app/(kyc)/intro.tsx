@@ -11,7 +11,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 
 const STEPS = [
-  { icon: Landmark, title: 'Coordonnées bancaires', body: 'Votre banque et vos identifiants de compte, pour le décaissement.' },
+  { icon: Landmark, title: 'Situation bancaire', body: "Avec ou sans compte bancaire, nous adaptons votre parcours de financement." },
   { icon: IdCard, title: "Pièce d'identité", body: 'CNI, passeport ou carte consulaire — recto et verso.' },
   { icon: ScanFace, title: 'Selfie de contrôle', body: 'Un selfie rapide pour confirmer que c\'est bien vous.' },
   { icon: Clock3, title: '2 minutes chrono', body: 'Analyse automatique, résultat immédiat.' },
@@ -53,7 +53,7 @@ export default function KycIntroScreen() {
       </View>
 
       <View style={styles.footer}>
-        <Button label="Commencer la vérification" onPress={() => router.push('/(kyc)/bank-info')} />
+        <Button label="Commencer la vérification" onPress={() => router.push('/(kyc)/bank-status')} />
         <Button
           label="Passer la vérification pour l'instant"
           variant="outline"

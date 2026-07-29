@@ -22,6 +22,15 @@ export const BANK_OFFERS: BankOffer[] = [
   { bank: 'ECOBANK Flex', bankFullName: "Ecobank Côte d'Ivoire", rate: 10.5, delay: '5 jours' },
 ];
 
+// Fallback offer for clients without a bank account (see (kyc)/bank-status.tsx) —
+// they finance through Orange Money's "Tiktak" micro-loan instead of a partner bank.
+export const OM_TIKTAK_OFFER: BankOffer = {
+  bank: 'Orange Money Tiktak',
+  bankFullName: "Orange Money Côte d'Ivoire",
+  rate: 12,
+  delay: '24h',
+};
+
 export type LoanRequest = {
   id: string;
   loanType: number;
@@ -44,6 +53,11 @@ type DataContextType = {
   setIsAuthenticated: (val: boolean) => void;
   identityVerified: boolean;
   setIdentityVerified: (val: boolean) => void;
+
+  // Whether the client holds a bank account (see (kyc)/bank-status.tsx). When
+  // false, they are routed to the Orange Money Tiktak offer instead of a bank.
+  isBanked: boolean;
+  setIsBanked: (val: boolean) => void;
 
   bankName: string;
   setBankName: (val: string) => void;
@@ -84,6 +98,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [email, setEmail] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [identityVerified, setIdentityVerified] = useState(false);
+  const [isBanked, setIsBanked] = useState(true);
 
   const [bankName, setBankName] = useState('');
   const [bankAccountNumber, setBankAccountNumber] = useState('');
@@ -102,10 +117,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   });
   const [kycPct, setKycPct] = useState(0);
 
-  const selectedOffer = useMemo(
-    () => BANK_OFFERS.find((o) => bankName && o.bank.toLowerCase().includes(bankName.toLowerCase())) ?? null,
-    [bankName],
-  );
+  const selectedOffer = useMemo(() => {
+    if (!isBanked) return OM_TIKTAK_OFFER;
+    return BANK_OFFERS.find((o) => bankName && o.bank.toLowerCase().includes(bankName.toLowerCase())) ?? null;
+  }, [isBanked, bankName]);
 
   const [loans, setLoans] = useState<LoanRequest[]>([]);
 
@@ -144,6 +159,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         email, setEmail,
         isAuthenticated, setIsAuthenticated,
         identityVerified, setIdentityVerified,
+        isBanked, setIsBanked,
         bankName, setBankName,
         bankAccountNumber, setBankAccountNumber,
         bankRibIban, setBankRibIban,

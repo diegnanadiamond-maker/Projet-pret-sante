@@ -14,7 +14,7 @@ import PulseDot from '@/components/ui/PulseDot';
 export default function KycSuccessScreen() {
   const router = useRouter();
   const colors = Colors[useColorScheme() ?? 'light'];
-  const { setIdentityVerified } = useData();
+  const { setIdentityVerified, isBanked } = useData();
   const [ready, setReady] = useState(false);
 
   const scale = useSharedValue(0.6);
@@ -52,7 +52,9 @@ export default function KycSuccessScreen() {
               Identité <Text style={{ fontFamily: Fonts.displayItalic }}>vérifiée</Text>
             </Text>
             <Text style={[styles.sub, { color: colors.textMuted }]}>
-              Votre profil est validé. Vous pouvez maintenant simuler et demander votre premier financement santé.
+              {isBanked
+                ? 'Votre profil est validé. Vous pouvez maintenant simuler et demander votre premier financement santé auprès de votre banque.'
+                : "Votre profil est validé. Sans compte bancaire, votre financement passera par Orange Money et son prêt Tiktak."}
             </Text>
           </>
         )}
