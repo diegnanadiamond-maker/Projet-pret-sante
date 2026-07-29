@@ -24,7 +24,7 @@ export default function DocumentsStep() {
 
   return (
     <Screen padded>
-      <StepHeader step={3} totalSteps={4} />
+      <StepHeader step={4} totalSteps={5} />
 
       <Text style={[styles.title, { color: colors.text }]}>
         Complétez votre <Text style={{ fontFamily: Fonts.displayItalic }}>dossier</Text>
@@ -117,7 +117,7 @@ export default function DocumentsStep() {
       </View>
 
       <View style={styles.footer}>
-        <Button label="Relire et signer le contrat" onPress={() => router.push('/(loan-request)/step-4-contract')} disabled={!ready} />
+        <Button label="Relire et signer le contrat" onPress={() => router.push('/(loan-request)/step-5-contract')} disabled={!ready} />
       </View>
     </Screen>
   );

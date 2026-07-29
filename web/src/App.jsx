@@ -56,7 +56,13 @@ const MOCK_CLINIC_PATIENTS = [
   { name: 'Mariam Bah', care: 'Imagerie médicale', amount: 210000, bank: 'SGCI', status: 'Programmé' },
 ];
 
-const CLINIC_PATIENT_POOL = ['Yao Kouassi', 'Nadège Touré', 'Aya Camara', 'Mariam Bah', 'Ibrahim Soro', 'Awa Koné', 'Jean Koffi', 'Fatou Diallo', 'Kouamé Adou', 'Salif Ouattara'];
+const MOCK_CLINIC_INVOICES = [
+  { id: 'DEV-3021', patient: 'Saliou Diop', care: 'Accouchement / Maternité', amount: 900000, bank: 'SGCI', date: '14 Mai 2024', status: 'Transmise' },
+  { id: 'DEV-3020', patient: 'Fatou Diallo', care: 'Chirurgie générale', amount: 600000, bank: 'BNI', date: '13 Mai 2024', status: 'Transmise' },
+  { id: 'DEV-3019', patient: 'Jean Koffi', care: 'Soin dentaire', amount: 450000, bank: 'SGCI', date: '15 Mai 2024', status: 'En attente' },
+];
+
+const CLINIC_PATIENT_POOL =['Yao Kouassi', 'Nadège Touré', 'Aya Camara', 'Mariam Bah', 'Ibrahim Soro', 'Awa Koné', 'Jean Koffi', 'Fatou Diallo', 'Kouamé Adou', 'Salif Ouattara'];
 const CLINIC_CARE_POOL = ['Consultation', 'Chirurgie générale', 'Soin dentaire', 'Maternité', 'Bilan & diagnostic', 'Imagerie médicale', 'Hospitalisation'];
 const CLINIC_BANK_POOL = ['SGCI', 'BNI', 'Ecobank'];
 const clinicPick = (arr) => arr[Math.floor(Math.random() * arr.length)];
@@ -223,7 +229,6 @@ function App() {
                 handleRefresh={handleRefresh}
                 isRefreshing={isRefreshing}
                 handleGlobalReport={handleGlobalReport}
-                showToast={showToast}
                 logs={logs}
                 banks={banks}
               />
@@ -237,6 +242,7 @@ function App() {
           {activeTab === 'risk' && <BankRiskView />}
           {activeTab === 'paiements' && <ClinicPaymentsView showToast={showToast} />}
           {activeTab === 'patients' && <ClinicPatientsView showToast={showToast} />}
+          {activeTab === 'factures' && <ClinicInvoicesView showToast={showToast} />}
           {activeTab === 'users' && <UsersListView
             users={filteredUsers}
             searchQuery={searchQuery}
@@ -263,7 +269,7 @@ function App() {
           />}
 
           {/* Fallback for tabs in development */}
-          {(activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'banks' && activeTab !== 'help' && activeTab !== 'settings' && activeTab !== 'requests' && activeTab !== 'risk' && activeTab !== 'paiements' && activeTab !== 'patients') && (
+          {(activeTab !== 'dashboard' && activeTab !== 'users' && activeTab !== 'banks' && activeTab !== 'help' && activeTab !== 'settings' && activeTab !== 'requests' && activeTab !== 'risk' && activeTab !== 'paiements' && activeTab !== 'patients' && activeTab !== 'factures') && (
             <div className="empty-state animate-fade-in">
               <i className="ti ti-tool"></i>
               <h2>Module en cours de déploiement</h2>
@@ -919,6 +925,9 @@ const Sidebar = ({ userRole, activeTab, navigateToTab, handleLogout, clinicProfi
             <button className={`nav-item ${activeTab === 'patients' ? 'active' : ''}`} onClick={() => navigateToTab('patients')}>
               <i className="ti ti-users"></i> Patients financés
             </button>
+            <button className={`nav-item ${activeTab === 'factures' ? 'active' : ''}`} onClick={() => navigateToTab('factures')}>
+              <i className="ti ti-file-invoice"></i> Factures pro-forma
+            </button>
           </>
         )}
       </div>
@@ -955,7 +964,18 @@ const Sidebar = ({ userRole, activeTab, navigateToTab, handleLogout, clinicProfi
   </aside>
 );
 
-const AdminDashboard = ({ handleRefresh, isRefreshing, handleGlobalReport, showToast, logs, banks }) => (
+const LOGS_FILTER_MAP = {
+  Utilisateurs: null,
+  Banques: ['Security', 'Config'],
+  Système: ['System', 'Warning'],
+};
+
+const AdminDashboard = ({ handleRefresh, isRefreshing, handleGlobalReport, logs, banks }) => {
+  const [logsFilter, setLogsFilter] = useState('Utilisateurs');
+  const allowedTypes = LOGS_FILTER_MAP[logsFilter];
+  const filteredLogs = allowedTypes ? logs.filter(l => allowedTypes.includes(l.type)) : logs;
+
+  return (
   <div className="pilotage-view animate-fade-in">
     <div className="view-header">
       <div className="title-group">
@@ -1005,13 +1025,16 @@ const AdminDashboard = ({ handleRefresh, isRefreshing, handleGlobalReport, showT
             <h3>Monitoring des Flux (24h)</h3>
           </div>
           <div className="header-tabs">
-            <button className="active">Utilisateurs</button>
-            <button onClick={() => showToast("Filtre Banques appliqué")}>Banques</button>
-            <button onClick={() => showToast("Filtre Système appliqué")}>Système</button>
+            {Object.keys(LOGS_FILTER_MAP).map(f => (
+              <button key={f} className={logsFilter === f ? 'active' : ''} onClick={() => setLogsFilter(f)}>{f}</button>
+            ))}
           </div>
         </div>
         <div className="logs-timeline enterprise">
-          {logs.slice(0, 5).map(log => (
+          {filteredLogs.length === 0 && (
+            <p className="text-xs text-slate-400" style={{ padding: '1rem 0' }}>Aucun événement pour ce filtre.</p>
+          )}
+          {filteredLogs.slice(0, 5).map(log => (
             <div className="log-entry-premium" key={log.id}>
               <div className={`log-avatar ${log.type.toLowerCase()}`}>{log.user.charAt(0)}</div>
               <div className="log-content">
@@ -1085,7 +1108,8 @@ const AdminDashboard = ({ handleRefresh, isRefreshing, handleGlobalReport, showT
       </div>
     </div>
   </div>
-);
+  );
+};
 
 const UsersListView = ({ users, toggleUserStatus, setActiveModal, setSelectedUser, showToast, handleAddUser, searchQuery, setSearchQuery }) => (
   <div className="pilotage-view animate-fade-in">
@@ -2057,6 +2081,130 @@ const ClinicPatientsView = ({ showToast }) => {
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ClinicInvoicesView = ({ showToast }) => {
+  const [invoices, setInvoices] = useState(MOCK_CLINIC_INVOICES);
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ patient: '', care: '', amount: '', bank: CLINIC_BANK_POOL[0] });
+
+  const resetForm = () => setForm({ patient: '', care: '', amount: '', bank: CLINIC_BANK_POOL[0] });
+
+  const handleCreate = (e) => {
+    e.preventDefault();
+    if (!form.patient.trim() || !form.care.trim() || !Number(form.amount)) {
+      showToast('Veuillez renseigner le patient, le soin et un montant valide.');
+      return;
+    }
+    const newInvoice = {
+      id: `DEV-${3022 + invoices.length}`,
+      patient: form.patient.trim(),
+      care: form.care.trim(),
+      amount: Number(form.amount),
+      bank: form.bank,
+      date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }),
+      status: 'En attente',
+    };
+    setInvoices([newInvoice, ...invoices]);
+    setShowForm(false);
+    resetForm();
+    showToast(`Facture pro-forma ${newInvoice.id} émise pour ${newInvoice.patient}`);
+  };
+
+  const handleTransmit = (id) => {
+    setInvoices(invoices.map((inv) => (inv.id === id ? { ...inv, status: 'Transmise' } : inv)));
+    showToast('Facture transmise à la banque partenaire');
+  };
+
+  return (
+    <div className="pilotage-view animate-fade-in">
+      <div className="view-header">
+        <div className="title-group">
+          <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Factures pro-forma</h1>
+          <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Émettez les devis justifiant le montant des prêts santé de vos patients</p>
+        </div>
+        <div className="header-actions">
+          <button className="btn-premium primary" onClick={() => setShowForm(true)}>
+            <i className="ti ti-file-plus"></i> Nouvelle facture pro-forma
+          </button>
+        </div>
+      </div>
+
+      <div className="glass-panel table-container-premium">
+        <div className="enterprise-table-wrapper">
+          <table className="enterprise-table">
+            <thead>
+              <tr><th>Référence</th><th>Patient</th><th>Soin</th><th>Banque</th><th>Montant</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              {invoices.map((inv) => (
+                <tr key={inv.id}>
+                  <td className="font-mono text-xs">{inv.id}</td>
+                  <td className="font-bold">{inv.patient}</td>
+                  <td>{inv.care}</td>
+                  <td>{inv.bank}</td>
+                  <td className="font-mono font-bold text-brand">{fmtFCFA(inv.amount)}</td>
+                  <td>{inv.date}</td>
+                  <td><span className={`status-pill-mini ${inv.status === 'Transmise' ? 'online' : 'warning'}`}>{inv.status}</span></td>
+                  <td>
+                    <div className="table-actions">
+                      <button className="action-icon-btn" title="Télécharger" onClick={() => showToast(`Facture ${inv.id} téléchargée`)}>
+                        <i className="ti ti-download"></i>
+                      </button>
+                      {inv.status !== 'Transmise' && (
+                        <button className="action-icon-btn success" title="Transmettre à la banque" onClick={() => handleTransmit(inv.id)}>
+                          <i className="ti ti-send"></i>
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {showForm && (
+        <div className="modal-overlay animate-fade-in" onClick={() => setShowForm(false)}>
+          <div className="modal-card glass-panel-premium animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>Nouvelle facture pro-forma</h3>
+              <button className="icon-btn-close" onClick={() => setShowForm(false)}><i className="ti ti-x"></i></button>
+            </div>
+            <form onSubmit={handleCreate}>
+              <div className="modal-body">
+                <div className="form-grid">
+                  <div className="field">
+                    <label>Nom du patient</label>
+                    <input type="text" placeholder="Ex: Jean Kouassi" value={form.patient} onChange={(e) => setForm({ ...form, patient: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label>Soin / prestation</label>
+                    <input type="text" placeholder="Ex: Chirurgie générale" value={form.care} onChange={(e) => setForm({ ...form, care: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label>Montant (FCFA)</label>
+                    <input type="number" placeholder="Ex: 350000" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
+                  </div>
+                  <div className="field">
+                    <label>Banque destinataire</label>
+                    <select value={form.bank} onChange={(e) => setForm({ ...form, bank: e.target.value })}>
+                      {CLINIC_BANK_POOL.map((b) => <option key={b} value={b}>{b}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div className="modal-actions">
+                  <button type="button" className="btn-premium secondary" onClick={() => setShowForm(false)}>Annuler</button>
+                  <button type="submit" className="btn-premium primary">Émettre la facture</button>
+                </div>
+              </div>
+            </form>
           </div>
         </div>
       )}

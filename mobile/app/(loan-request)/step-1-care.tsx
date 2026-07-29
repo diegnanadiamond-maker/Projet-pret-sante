@@ -27,7 +27,7 @@ export default function CareTypeStep() {
 
   return (
     <Screen padded>
-      <StepHeader step={1} totalSteps={4} />
+      <StepHeader step={1} totalSteps={5} />
 
       <Text style={[styles.title, { color: colors.text }]}>
         Quel soin allez-vous{' '}

@@ -22,12 +22,12 @@ export default function ContractStep() {
 
   const confirm = () => {
     const id = addLoan();
-    router.replace({ pathname: '/(loan-request)/step-5-success', params: { id } });
+    router.replace({ pathname: '/(loan-request)/step-6-success', params: { id } });
   };
 
   return (
     <Screen padded>
-      <StepHeader step={4} totalSteps={4} />
+      <StepHeader step={5} totalSteps={5} />
 
       <Text style={[styles.title, { color: colors.text }]}>
         Relisez et <Text style={{ fontFamily: Fonts.displayItalic }}>signez</Text>

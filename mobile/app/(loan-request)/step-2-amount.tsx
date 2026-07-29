@@ -25,7 +25,7 @@ export default function AmountStep() {
 
   return (
     <Screen padded>
-      <StepHeader step={2} totalSteps={4} />
+      <StepHeader step={2} totalSteps={5} />
 
       <Text style={[styles.title, { color: colors.text }]}>
         Quel <Text style={{ fontFamily: Fonts.displayItalic }}>montant</Text> vous faut-il ?
@@ -93,7 +93,7 @@ export default function AmountStep() {
       </View>
 
       <View style={styles.footer}>
-        <Button label="Continuer" onPress={() => router.push('/(loan-request)/step-3-documents')} />
+        <Button label="Continuer" onPress={() => router.push('/(loan-request)/step-3-fees')} />
       </View>
     </Screen>
   );
