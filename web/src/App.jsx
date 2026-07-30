@@ -57,12 +57,11 @@ const MOCK_CLINIC_PATIENTS = [
 ];
 
 const MOCK_CLINIC_INVOICES = [
-  { id: 'DEV-3021', patient: 'Saliou Diop', care: 'Accouchement / Maternité', amount: 900000, bank: 'SGCI', date: '14 Mai 2024', status: 'Transmise' },
-  { id: 'DEV-3020', patient: 'Fatou Diallo', care: 'Chirurgie générale', amount: 600000, bank: 'BNI', date: '13 Mai 2024', status: 'Transmise' },
-  { id: 'DEV-3019', patient: 'Jean Koffi', care: 'Soin dentaire', amount: 450000, bank: 'SGCI', date: '15 Mai 2024', status: 'En attente' },
+  { id: 'DEV-3021', care: 'Accouchement / Maternité', amount: 900000, date: '14 Mai 2024' },
+  { id: 'DEV-3020', care: 'Chirurgie générale', amount: 600000, date: '13 Mai 2024' },
+  { id: 'DEV-3019', care: 'Soin dentaire', amount: 450000, date: '15 Mai 2024' },
 ];
 
-const CLINIC_BANK_POOL = ['SGCI', 'BNI', 'Ecobank'];
 const fmtFCFA = (v) => new Intl.NumberFormat('fr-FR').format(Math.round(v)) + ' FCFA';
 const fmtShortFCFA = (v) => (v >= 1e6 ? (v / 1e6).toFixed(v % 1e6 === 0 ? 0 : 1) + ' M' : Math.round(v / 1000) + 'k');
 
@@ -2022,36 +2021,49 @@ const ClinicPatientsView = ({ showToast }) => {
 };
 
 const ClinicInvoicesView = ({ showToast }) => {
-  const [invoices, setInvoices] = useState(MOCK_CLINIC_INVOICES);
+  const [tariffs, setTariffs] = useState(MOCK_CLINIC_INVOICES);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ patient: '', care: '', amount: '', bank: CLINIC_BANK_POOL[0] });
+  const [editingId, setEditingId] = useState(null);
+  const [form, setForm] = useState({ care: '', amount: '' });
 
-  const resetForm = () => setForm({ patient: '', care: '', amount: '', bank: CLINIC_BANK_POOL[0] });
+  const resetForm = () => setForm({ care: '', amount: '' });
 
-  const handleCreate = (e) => {
-    e.preventDefault();
-    if (!form.patient.trim() || !form.care.trim() || !Number(form.amount)) {
-      showToast('Veuillez renseigner le patient, le soin et un montant valide.');
-      return;
-    }
-    const newInvoice = {
-      id: `DEV-${3022 + invoices.length}`,
-      patient: form.patient.trim(),
-      care: form.care.trim(),
-      amount: Number(form.amount),
-      bank: form.bank,
-      date: new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }),
-      status: 'En attente',
-    };
-    setInvoices([newInvoice, ...invoices]);
-    setShowForm(false);
+  const openCreate = () => {
+    setEditingId(null);
     resetForm();
-    showToast(`Facture pro-forma ${newInvoice.id} émise pour ${newInvoice.patient}`);
+    setShowForm(true);
   };
 
-  const handleTransmit = (id) => {
-    setInvoices(invoices.map((inv) => (inv.id === id ? { ...inv, status: 'Transmise' } : inv)));
-    showToast('Facture transmise à la banque partenaire');
+  const openEdit = (tariff) => {
+    setEditingId(tariff.id);
+    setForm({ care: tariff.care, amount: String(tariff.amount) });
+    setShowForm(true);
+  };
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    if (!form.care.trim() || !Number(form.amount)) {
+      showToast('Veuillez renseigner la prestation et un montant valide.');
+      return;
+    }
+    const today = new Date().toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    if (editingId) {
+      setTariffs(tariffs.map((t) => (t.id === editingId ? { ...t, care: form.care.trim(), amount: Number(form.amount), date: today } : t)));
+      showToast(`Tarif "${form.care.trim()}" mis à jour`);
+    } else {
+      const newTariff = {
+        id: `DEV-${3022 + tariffs.length}`,
+        care: form.care.trim(),
+        amount: Number(form.amount),
+        date: today,
+      };
+      setTariffs([newTariff, ...tariffs]);
+      showToast(`Facture pro-forma standard "${newTariff.care}" créée`);
+    }
+    setShowForm(false);
+    resetForm();
+    setEditingId(null);
   };
 
   return (
@@ -2059,10 +2071,10 @@ const ClinicInvoicesView = ({ showToast }) => {
       <div className="view-header">
         <div className="title-group">
           <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">Factures pro-forma</h1>
-          <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Émettez les devis justifiant le montant des prêts santé de vos patients</p>
+          <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Standardisez le coût de vos prestations pour justifier le montant des prêts santé de vos patients, quelle que soit leur banque</p>
         </div>
         <div className="header-actions">
-          <button className="btn-premium primary" onClick={() => setShowForm(true)}>
+          <button className="btn-premium primary" onClick={openCreate}>
             <i className="ti ti-file-plus"></i> Nouvelle facture pro-forma
           </button>
         </div>
@@ -2072,28 +2084,23 @@ const ClinicInvoicesView = ({ showToast }) => {
         <div className="enterprise-table-wrapper">
           <table className="enterprise-table">
             <thead>
-              <tr><th>Référence</th><th>Patient</th><th>Soin</th><th>Banque</th><th>Montant</th><th>Date</th><th>Statut</th><th>Actions</th></tr>
+              <tr><th>Référence</th><th>Prestation</th><th>Montant standard</th><th>Mis à jour le</th><th>Actions</th></tr>
             </thead>
             <tbody>
-              {invoices.map((inv) => (
-                <tr key={inv.id}>
-                  <td className="font-mono text-xs">{inv.id}</td>
-                  <td className="font-bold">{inv.patient}</td>
-                  <td>{inv.care}</td>
-                  <td>{inv.bank}</td>
-                  <td className="font-mono font-bold text-brand">{fmtFCFA(inv.amount)}</td>
-                  <td>{inv.date}</td>
-                  <td><span className={`status-pill-mini ${inv.status === 'Transmise' ? 'online' : 'warning'}`}>{inv.status}</span></td>
+              {tariffs.map((t) => (
+                <tr key={t.id}>
+                  <td className="font-mono text-xs">{t.id}</td>
+                  <td className="font-bold">{t.care}</td>
+                  <td className="font-mono font-bold text-brand">{fmtFCFA(t.amount)}</td>
+                  <td>{t.date}</td>
                   <td>
                     <div className="table-actions">
-                      <button className="action-icon-btn" title="Télécharger" onClick={() => showToast(`Facture ${inv.id} téléchargée`)}>
+                      <button className="action-icon-btn" title="Modifier le tarif" onClick={() => openEdit(t)}>
+                        <i className="ti ti-pencil"></i>
+                      </button>
+                      <button className="action-icon-btn" title="Télécharger" onClick={() => showToast(`Facture ${t.id} téléchargée`)}>
                         <i className="ti ti-download"></i>
                       </button>
-                      {inv.status !== 'Transmise' && (
-                        <button className="action-icon-btn success" title="Transmettre à la banque" onClick={() => handleTransmit(inv.id)}>
-                          <i className="ti ti-send"></i>
-                        </button>
-                      )}
                     </div>
                   </td>
                 </tr>
@@ -2107,34 +2114,24 @@ const ClinicInvoicesView = ({ showToast }) => {
         <div className="modal-overlay animate-fade-in" onClick={() => setShowForm(false)}>
           <div className="modal-card glass-panel-premium animate-slide-up" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h3>Nouvelle facture pro-forma</h3>
+              <h3>{editingId ? 'Modifier le tarif standard' : 'Nouvelle facture pro-forma'}</h3>
               <button className="icon-btn-close" onClick={() => setShowForm(false)}><i className="ti ti-x"></i></button>
             </div>
-            <form onSubmit={handleCreate}>
+            <form onSubmit={handleSave}>
               <div className="modal-body">
                 <div className="form-grid">
-                  <div className="field">
-                    <label>Nom du patient</label>
-                    <input type="text" placeholder="Ex: Jean Kouassi" value={form.patient} onChange={(e) => setForm({ ...form, patient: e.target.value })} />
-                  </div>
                   <div className="field">
                     <label>Soin / prestation</label>
                     <input type="text" placeholder="Ex: Chirurgie générale" value={form.care} onChange={(e) => setForm({ ...form, care: e.target.value })} />
                   </div>
                   <div className="field">
-                    <label>Montant (FCFA)</label>
+                    <label>Montant standard (FCFA)</label>
                     <input type="number" placeholder="Ex: 350000" value={form.amount} onChange={(e) => setForm({ ...form, amount: e.target.value })} />
-                  </div>
-                  <div className="field">
-                    <label>Banque destinataire</label>
-                    <select value={form.bank} onChange={(e) => setForm({ ...form, bank: e.target.value })}>
-                      {CLINIC_BANK_POOL.map((b) => <option key={b} value={b}>{b}</option>)}
-                    </select>
                   </div>
                 </div>
                 <div className="modal-actions">
                   <button type="button" className="btn-premium secondary" onClick={() => setShowForm(false)}>Annuler</button>
-                  <button type="submit" className="btn-premium primary">Émettre la facture</button>
+                  <button type="submit" className="btn-premium primary">{editingId ? 'Enregistrer' : 'Créer le tarif'}</button>
                 </div>
               </div>
             </form>
