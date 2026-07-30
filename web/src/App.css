@@ -2488,7 +2488,7 @@ body.dark-mode .client-profile-card .cp-badge { background: rgba(22, 163, 74, 0.
 }
 
 /* =====================================================================
-   ESPACE CLINIQUE — Flux financiers temps réel
+   ESPACE CLINIQUE — Flux financiers
    ===================================================================== */
 .clinic-hero {
   display: flex;
@@ -2497,9 +2497,9 @@ body.dark-mode .client-profile-card .cp-badge { background: rgba(22, 163, 74, 0.
   gap: 1.5rem;
   padding: 2.25rem 2.5rem;
   border-radius: 32px;
-  background: linear-gradient(135deg, #064e3b 0%, #0f766e 100%);
+  background: linear-gradient(135deg, var(--color-brand-dark) 0%, var(--color-brand-primary) 100%);
   color: white;
-  box-shadow: 0 25px 50px -12px rgba(6, 78, 59, 0.35);
+  box-shadow: 0 25px 50px -12px rgba(21, 94, 239, 0.35);
   margin-bottom: 2rem;
   position: relative;
   overflow: hidden;
@@ -2511,7 +2511,7 @@ body.dark-mode .client-profile-card .cp-badge { background: rgba(22, 163, 74, 0.
   right: -5%;
   width: 340px;
   height: 340px;
-  background: radial-gradient(circle, rgba(52, 211, 153, 0.25) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(14, 165, 233, 0.3) 0%, transparent 70%);
   border-radius: 50%;
   pointer-events: none;
 }
@@ -2523,7 +2523,7 @@ body.dark-mode .client-profile-card .cp-badge { background: rgba(22, 163, 74, 0.
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
-  color: #a7f3d0;
+  color: #bfdbfe;
   text-transform: uppercase;
 }
 .clinic-hero-amount {
@@ -2532,51 +2532,11 @@ body.dark-mode .client-profile-card .cp-badge { background: rgba(22, 163, 74, 0.
   letter-spacing: -1px;
   line-height: 1.1;
   font-variant-numeric: tabular-nums;
-  transition: color 0.2s ease;
 }
-.clinic-hero-amount.flash { animation: clinicFlash 0.9s ease; }
-@keyframes clinicFlash {
-  0% { color: #6ee7b7; text-shadow: 0 0 24px rgba(110, 231, 183, 0.7); }
-  100% { color: #ffffff; text-shadow: none; }
-}
-.clinic-hero-sub { font-size: 0.85rem; color: rgba(209, 250, 229, 0.85); max-width: 42ch; }
-.clinic-hero-icon { font-size: 3rem; color: rgba(167, 243, 208, 0.9); z-index: 1; flex-shrink: 0; }
+.clinic-hero-sub { font-size: 0.85rem; color: rgba(219, 234, 254, 0.85); max-width: 42ch; }
+.clinic-hero-icon { font-size: 3rem; color: rgba(191, 219, 254, 0.9); z-index: 1; flex-shrink: 0; }
 
-.clinic-live-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 100px;
-  background: rgba(16, 185, 129, 0.1);
-  border: 1px solid rgba(16, 185, 129, 0.25);
-  color: #047857;
-  font-size: 0.75rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-.clinic-live-pill.sm { padding: 3px 10px; font-size: 0.62rem; }
-
-.clinic-live-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 0 rgba(16, 185, 129, 0.5);
-  animation: clinicPulse 1.8s infinite;
-  flex-shrink: 0;
-}
-.clinic-hero-label .clinic-live-dot { background: #6ee7b7; }
-@keyframes clinicPulse {
-  0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
-  70% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-}
-.clinic-activity-item { transition: all 0.3s ease; }
-
-body.dark-mode .clinic-hero { background: linear-gradient(135deg, #022c22 0%, #0f766e 100%); }
-body.dark-mode .clinic-live-pill { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+body.dark-mode .clinic-hero { background: linear-gradient(135deg, #050b16 0%, var(--color-brand-primary) 100%); }
 
 @media (max-width: 640px) {
   .clinic-hero { flex-direction: column; align-items: flex-start; padding: 1.75rem; }
