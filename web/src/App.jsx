@@ -19,11 +19,19 @@ const MOCK_BANKS = [
 ];
 
 const MOCK_APPLICATIONS = [
-  { id: 'APP-001', user: 'Awa Koné', amount: '120 000 FCFA', care: 'Bilan de santé', date: '16 Mai 2024', status: 'Nouveau', risk: 'Faible', docs: ['CNI', 'Salaire', 'RIB'], scoring: 82 },
-  { id: 'APP-002', user: 'Jean Koffi', amount: '450 000 FCFA', care: 'Dentaire', date: '15 Mai 2024', status: 'En examen', risk: 'Moyen', docs: ['CNI', 'Salaire'], scoring: 64 },
-  { id: 'APP-003', user: 'Saliou Diop', amount: '900 000 FCFA', care: 'Accouchement', date: '14 Mai 2024', status: 'Vérification', risk: 'Faible', docs: ['CNI', 'Salaire', 'RIB', 'Devis'], scoring: 91 },
-  { id: 'APP-004', user: 'Fatou Diallo', amount: '600 000 FCFA', care: 'Chirurgie', date: '13 Mai 2024', status: 'Nouveau', risk: 'Élevé', docs: ['CNI'], scoring: 41 },
+  { id: 'APP-001', user: 'Awa Koné', amount: '120 000 FCFA', care: 'Bilan de santé', date: '16 Mai 2024', status: 'Nouveau', risk: 'Faible', docs: ['CNI', 'Salaire', 'RIB'], scoring: 82, duration: 6, rate: 7.9 },
+  { id: 'APP-002', user: 'Jean Koffi', amount: '450 000 FCFA', care: 'Dentaire', date: '15 Mai 2024', status: 'En examen', risk: 'Moyen', docs: ['CNI', 'Salaire'], scoring: 64, duration: 12, rate: 7.9 },
+  { id: 'APP-003', user: 'Saliou Diop', amount: '900 000 FCFA', care: 'Accouchement', date: '14 Mai 2024', status: 'Vérification', risk: 'Faible', docs: ['CNI', 'Salaire', 'RIB', 'Devis'], scoring: 91, duration: 18, rate: 7.9 },
+  { id: 'APP-004', user: 'Fatou Diallo', amount: '600 000 FCFA', care: 'Chirurgie', date: '13 Mai 2024', status: 'Nouveau', risk: 'Élevé', docs: ['CNI'], scoring: 41, duration: 12, rate: 7.9 },
 ];
+
+const REQUIRED_DOCS = ['CNI', 'Salaire', 'RIB', 'Devis'];
+const DOC_LABELS = {
+  CNI: "Carte Nationale d'Identité",
+  Salaire: 'Bulletins de salaire',
+  RIB: 'Relevé d\'Identité Bancaire',
+  Devis: 'Facture pro-forma (devis)',
+};
 
 const RISK_COLORS = { 'Faible': '#10b981', 'Moyen': '#f59e0b', 'Élevé': '#ef4444' };
 
@@ -1363,6 +1371,8 @@ const BankRequestsView = ({ showToast }) => {
   const [missingDocs, setMissingDocs] = useState({ releve: true, devis: true, ocr: false });
   const [customComment, setCustomComment] = useState("");
   const [riskFilter, setRiskFilter] = useState('Tout');
+  const [reviewApp, setReviewApp] = useState(null);
+  const [docDecisions, setDocDecisions] = useState({});
 
   const handleGenerateContract = (app = selectedApp) => {
     if (!app?.docs?.includes('Devis')) {
@@ -1375,6 +1385,19 @@ const BankRequestsView = ({ showToast }) => {
   const handleRequestComplement = () => {
     setActiveModal('complement');
   };
+
+  const parseAmount = (str) => parseInt(str.replace(/[^\d]/g, ''), 10);
+  const calcMonthly = (amount, months, ratePct) => {
+    const r = ratePct / 100 / 12;
+    return (amount * r * Math.pow(1 + r, months)) / (Math.pow(1 + r, months) - 1);
+  };
+
+  const openReview = (app) => {
+    setSelectedApp(app);
+    setReviewApp(app);
+    setDocDecisions(Object.fromEntries(app.docs.map((d) => [d, 'accepted'])));
+  };
+  const decideDoc = (doc, decision) => setDocDecisions((prev) => ({ ...prev, [doc]: decision }));
 
   const visibleApplications = riskFilter === 'Tout' ? MOCK_APPLICATIONS : MOCK_APPLICATIONS.filter(a => a.risk === riskFilter);
 
@@ -1442,7 +1465,7 @@ const BankRequestsView = ({ showToast }) => {
 
                 {/* Notification bell and action buttons pushed completely to the right */}
                 <div className="ml-auto flex items-center gap-3">
-                  <button className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-all" title="Examiner les formalités" onClick={(e) => { e.stopPropagation(); setSelectedApp(app); showToast(`Examen du dossier de ${app.user}`); }}><i className="ti ti-file-search"></i></button>
+                  <button className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-all" title="Examiner les formalités" onClick={(e) => { e.stopPropagation(); openReview(app); }}><i className="ti ti-file-search"></i></button>
                   <button className="w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-all" title="Accorder le prêt" onClick={(e) => { e.stopPropagation(); setSelectedApp(app); handleGenerateContract(app); }}><i className="ti ti-check"></i></button>
                   
                   {/* Pushed all the way to the right of the card */}
@@ -1573,6 +1596,108 @@ const BankRequestsView = ({ showToast }) => {
           </div>
         </div>
       </div>
+
+      {/* MODAL 0: Dossier detail + per-document accept/reject review */}
+      {reviewApp && (
+        <div className="modal-overlay animate-fade-in flex items-center justify-center z-[3000] fixed inset-0 bg-slate-900/60 backdrop-blur-sm p-4" onClick={() => setReviewApp(null)}>
+          <div className="modal-card bg-white rounded-3xl max-w-xl w-full overflow-hidden shadow-2xl border border-slate-100 animate-slide-up" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-extrabold text-slate-900 leading-snug tracking-tight mb-0">{reviewApp.user}</h3>
+                <span className="text-xs text-slate-400 font-mono">{reviewApp.id}</span>
+              </div>
+              <button className="icon-btn-close w-8 h-8 rounded-lg flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition-all text-slate-400" onClick={() => setReviewApp(null)}>
+                <i className="ti ti-x"></i>
+              </button>
+            </div>
+            <div className="modal-body p-6 flex flex-col gap-5">
+              <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Type de demande</span>
+                  <strong className="text-sm font-bold text-slate-800">{reviewApp.care}</strong>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Montant demandé</span>
+                  <strong className="text-sm font-bold text-blue-700">{reviewApp.amount}</strong>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Durée</span>
+                  <strong className="text-sm font-bold text-slate-800">{reviewApp.duration} mois</strong>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Mensualité estimée</span>
+                  <strong className="text-sm font-bold text-slate-800">{new Intl.NumberFormat('fr-FR').format(Math.round(calcMonthly(parseAmount(reviewApp.amount), reviewApp.duration, reviewApp.rate)))} FCFA</strong>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Date de la demande</span>
+                  <strong className="text-sm font-bold text-slate-800">{reviewApp.date}</strong>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Score de risque</span>
+                  <strong className="text-sm font-bold" style={{ color: RISK_COLORS[reviewApp.risk] }}>{reviewApp.scoring} · {reviewApp.risk}</strong>
+                </div>
+              </div>
+
+              <div>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Documents fournis</span>
+                <div className="flex flex-col gap-2">
+                  {REQUIRED_DOCS.map((doc) => {
+                    const provided = reviewApp.docs.includes(doc);
+                    const decision = docDecisions[doc];
+                    return (
+                      <div key={doc} className={`flex items-center justify-between p-3 rounded-xl border ${!provided ? 'bg-amber-50/40 border-amber-100' : decision === 'rejected' ? 'bg-rose-50/40 border-rose-100' : 'bg-emerald-50/30 border-emerald-100'}`}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center text-slate-500 shadow-sm"><i className="ti ti-file-text"></i></div>
+                          <div className="flex flex-col gap-0.5">
+                            <strong className="text-xs font-semibold text-slate-800">{DOC_LABELS[doc]}</strong>
+                            <span className={`text-[10px] ${!provided ? 'text-amber-600' : decision === 'rejected' ? 'text-rose-600' : 'text-emerald-600'}`}>
+                              {!provided ? 'Non fourni' : decision === 'rejected' ? 'Refusé' : 'Accepté'}
+                            </span>
+                          </div>
+                        </div>
+                        {provided && (
+                          <div className="flex items-center gap-1.5">
+                            <button
+                              title="Accepter"
+                              onClick={() => decideDoc(doc, 'accepted')}
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${decision === 'accepted' ? 'bg-emerald-600 text-white' : 'bg-white text-slate-400 border border-slate-200 hover:text-emerald-600'}`}
+                            >
+                              <i className="ti ti-check text-sm"></i>
+                            </button>
+                            <button
+                              title="Refuser"
+                              onClick={() => decideDoc(doc, 'rejected')}
+                              className={`w-7 h-7 rounded-lg flex items-center justify-center transition-all ${decision === 'rejected' ? 'bg-rose-600 text-white' : 'bg-white text-slate-400 border border-slate-200 hover:text-rose-600'}`}
+                            >
+                              <i className="ti ti-x text-sm"></i>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="modal-actions flex justify-end gap-3 pt-2">
+                <button className="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 text-xs font-semibold" onClick={() => setReviewApp(null)}>Fermer</button>
+                <button
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 text-white hover:bg-blue-700 text-xs font-bold shadow-md shadow-blue-600/10"
+                  onClick={() => {
+                    const rejected = Object.values(docDecisions).filter((d) => d === 'rejected').length;
+                    showToast(rejected > 0
+                      ? `Décisions enregistrées pour ${reviewApp.user} (${rejected} document${rejected > 1 ? 's' : ''} refusé${rejected > 1 ? 's' : ''})`
+                      : `Documents validés pour ${reviewApp.user}`);
+                    setReviewApp(null);
+                  }}
+                >
+                  Enregistrer les décisions
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL 1: Contract Generation (Interactive) */}
       {activeModal === 'contract' && (
