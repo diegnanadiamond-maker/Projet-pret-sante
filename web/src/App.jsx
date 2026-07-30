@@ -62,11 +62,7 @@ const MOCK_CLINIC_INVOICES = [
   { id: 'DEV-3019', patient: 'Jean Koffi', care: 'Soin dentaire', amount: 450000, bank: 'SGCI', date: '15 Mai 2024', status: 'En attente' },
 ];
 
-const CLINIC_PATIENT_POOL =['Yao Kouassi', 'Nadège Touré', 'Aya Camara', 'Mariam Bah', 'Ibrahim Soro', 'Awa Koné', 'Jean Koffi', 'Fatou Diallo', 'Kouamé Adou', 'Salif Ouattara'];
-const CLINIC_CARE_POOL = ['Consultation', 'Chirurgie générale', 'Soin dentaire', 'Maternité', 'Bilan & diagnostic', 'Imagerie médicale', 'Hospitalisation'];
 const CLINIC_BANK_POOL = ['SGCI', 'BNI', 'Ecobank'];
-const clinicPick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-const clinicRandomAmount = () => (Math.floor(Math.random() * 16) + 5) * 25000; // 125 000 – 500 000 FCFA
 const fmtFCFA = (v) => new Intl.NumberFormat('fr-FR').format(Math.round(v)) + ' FCFA';
 const fmtShortFCFA = (v) => (v >= 1e6 ? (v / 1e6).toFixed(v % 1e6 === 0 ? 0 : 1) + ' M' : Math.round(v / 1000) + 'k');
 
@@ -489,7 +485,7 @@ const mockHash = (pwd) => `mock$${btoa(unescape(encodeURIComponent(pwd)))}`;
 // Clinique de démo pré-enregistrée — mock uniquement, pour ne pas avoir à s'inscrire avant de tester.
 const DEMO_CLINIC = {
   id: 'clinic_demo',
-  clinicName: 'Clinique Avicenne (Démo)',
+  clinicName: 'Clinique Avicenne',
   email: 'clinique@pretsante.ci',
   phone: '+225 27 00 00 00 00',
   password: mockHash('Clinique123'),
@@ -499,9 +495,14 @@ const DEMO_CLINIC = {
 
 const getStoredClinics = () => {
   try {
-    const clinics = JSON.parse(localStorage.getItem(CLINICS_KEY)) || [];
-    if (!clinics.some((c) => c.email === DEMO_CLINIC.email)) {
-      clinics.push(DEMO_CLINIC);
+    let clinics = JSON.parse(localStorage.getItem(CLINICS_KEY)) || [];
+    const demoIndex = clinics.findIndex((c) => c.email === DEMO_CLINIC.email);
+    if (demoIndex === -1) {
+      clinics = [...clinics, DEMO_CLINIC];
+      saveStoredClinics(clinics);
+    } else if (clinics[demoIndex].clinicName !== DEMO_CLINIC.clinicName) {
+      // Keep the demo account's display name in sync if it changes in code.
+      clinics = clinics.map((c, i) => (i === demoIndex ? { ...c, clinicName: DEMO_CLINIC.clinicName } : c));
       saveStoredClinics(clinics);
     }
     return clinics;
@@ -1799,54 +1800,17 @@ const BankRiskView = () => {
 
 const ClinicDashboard = ({ navigateToTab, clinicProfile }) => {
   const clinicName = clinicProfile?.clinicName || CLINIC_NAME;
-  const [received, setReceived] = useState(2450000);   // reçu aujourd'hui (valeur réelle)
-  const [displayed, setDisplayed] = useState(2450000); // valeur animée affichée
-  const [patientsCount, setPatientsCount] = useState(14);
+  const received = 2450000;
+  const patientsCount = 14;
   const pending = 2;
-  const [flash, setFlash] = useState(false);
-  const [activities, setActivities] = useState([
-    { id: 1, type: 'payment', patient: 'Saliou Diop', care: 'Accouchement', bank: 'SGCI', amount: 900000, time: '09:12' },
-    { id: 2, type: 'validation', patient: 'Fatou Diallo', care: 'Chirurgie générale', bank: 'BNI', time: '08:40' },
-    { id: 3, type: 'payment', patient: 'Awa Koné', care: 'Bilan de santé', bank: 'Ecobank', amount: 120000, time: '08:05' },
-    { id: 4, type: 'devis', patient: 'Jean Koffi', care: 'Soin dentaire', bank: 'SGCI', time: 'Hier' },
-  ]);
-  const [recent, setRecent] = useState(MOCK_CLINIC_PAYMENTS.filter((p) => p.status === 'Reçu').slice(0, 4));
 
-  // Simulation "temps réel" : un versement arrive toutes les 5 s
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const patient = clinicPick(CLINIC_PATIENT_POOL);
-      const care = clinicPick(CLINIC_CARE_POOL);
-      const bank = clinicPick(CLINIC_BANK_POOL);
-      const amount = clinicRandomAmount();
-      const time = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-      setReceived((r) => r + amount);
-      setPatientsCount((c) => c + 1);
-      setFlash(true);
-      setTimeout(() => setFlash(false), 900);
-      setActivities((prev) => [{ id: Date.now(), type: 'payment', patient, care, bank, amount, time }, ...prev].slice(0, 12));
-      setRecent((prev) => [{ id: `PAY-${Date.now()}`, patient, care, bank, amount }, ...prev].slice(0, 5));
-    }, 5000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Animation "count-up" du montant reçu
-  useEffect(() => {
-    if (displayed === received) return undefined;
-    const start = displayed;
-    const diff = received - start;
-    const startTime = performance.now();
-    let raf;
-    const tick = (now) => {
-      const t = Math.min((now - startTime) / 800, 1);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setDisplayed(Math.round(start + diff * eased));
-      if (t < 1) raf = requestAnimationFrame(tick);
-    };
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [received]);
+  const activities = [
+    { id: 1, type: 'payment', patient: 'Saliou Diop', care: 'Accouchement', bank: 'SGCI', amount: 900000, time: "Aujourd'hui · 09:12" },
+    { id: 2, type: 'validation', patient: 'Fatou Diallo', care: 'Chirurgie générale', bank: 'BNI', time: "Aujourd'hui · 08:40" },
+    { id: 3, type: 'payment', patient: 'Awa Koné', care: 'Bilan de santé', bank: 'Ecobank', amount: 120000, time: 'Hier · 17:22' },
+    { id: 4, type: 'devis', patient: 'Jean Koffi', care: 'Soin dentaire', bank: 'SGCI', time: 'Hier · 14:05' },
+    { id: 5, type: 'payment', patient: 'Ibrahim Soro', care: 'Hospitalisation', bank: 'Ecobank', amount: 350000, time: '12 Mai · 10:15' },
+  ];
 
   const activityMeta = {
     payment: { icon: 'ti-cash', color: 'text-emerald-600', bg: 'bg-emerald-50', label: 'Versement reçu' },
@@ -1859,18 +1823,14 @@ const ClinicDashboard = ({ navigateToTab, clinicProfile }) => {
       <div className="view-header">
         <div className="title-group">
           <h1 className="text-3xl font-extrabold text-slate-900 leading-snug tracking-[-0.02em] mb-2">{clinicName}</h1>
-          <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Suivi en temps réel de vos flux financiers et activités</p>
-        </div>
-        <div className="header-actions">
-          <span className="clinic-live-pill"><span className="clinic-live-dot"></span> Temps réel</span>
-          <button className="btn-premium primary" onClick={() => navigateToTab('paiements')}><i className="ti ti-cash"></i> Paiements reçus</button>
+          <p className="text-slate-500 leading-normal tracking-[0.01em] mb-0">Aperçu de vos flux financiers et activités</p>
         </div>
       </div>
 
       <div className="clinic-hero">
         <div className="clinic-hero-main">
-          <span className="clinic-hero-label"><span className="clinic-live-dot"></span> Reçu aujourd'hui</span>
-          <div className={`clinic-hero-amount ${flash ? 'flash' : ''}`}>{fmtFCFA(displayed)}</div>
+          <span className="clinic-hero-label">Reçu aujourd'hui</span>
+          <div className="clinic-hero-amount">{fmtFCFA(received)}</div>
           <span className="clinic-hero-sub">Versements crédités automatiquement par les banques partenaires</span>
         </div>
         <div className="clinic-hero-icon"><i className="ti ti-heart-rate-monitor"></i></div>
@@ -1895,55 +1855,28 @@ const ClinicDashboard = ({ navigateToTab, clinicProfile }) => {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
-        <div className="glass-panel-premium rounded-3xl p-6 border border-slate-100 shadow-sm">
-          <div className="flex items-center gap-3 mb-5">
-            <h3 className="text-lg font-bold text-slate-800">Activité en temps réel</h3>
-            <span className="clinic-live-pill sm"><span className="clinic-live-dot"></span> Live</span>
-          </div>
-          <div className="flex flex-col gap-3">
-            {activities.map((a) => {
-              const meta = activityMeta[a.type];
-              return (
-                <div key={a.id} className="clinic-activity-item animate-fade-in flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                  <div className={`w-10 h-10 rounded-xl ${meta.bg} ${meta.color} flex items-center justify-center text-lg flex-shrink-0`}><i className={`ti ${meta.icon}`}></i></div>
-                  <div className="flex-1 min-w-0">
-                    <strong className="text-sm font-bold text-slate-800 block truncate">{meta.label} · {a.patient}</strong>
-                    <span className="text-xs text-slate-500">{a.care} · {a.bank}</span>
-                  </div>
-                  <div className="text-right flex-shrink-0">
-                    {a.amount ? <strong className="text-sm font-bold text-emerald-700 block">+{fmtFCFA(a.amount)}</strong> : <span className="text-xs font-semibold text-slate-400">—</span>}
-                    <span className="text-[10px] text-slate-400">{a.time}</span>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      <div className="glass-panel-premium rounded-3xl p-6 border border-slate-100 shadow-sm">
+        <div className="flex items-center justify-between mb-5">
+          <h3 className="text-lg font-bold text-slate-800">Activité récente</h3>
+          <button className="text-xs font-bold text-emerald-600 hover:text-emerald-700" onClick={() => navigateToTab('paiements')}>Voir tout</button>
         </div>
-
-        <div className="flex flex-col gap-6">
-          <div className="glass-panel-premium rounded-3xl p-6 border border-slate-100 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider">Versements récents</h3>
-              <button className="text-xs font-bold text-emerald-600 hover:text-emerald-700" onClick={() => navigateToTab('paiements')}>Voir tout</button>
-            </div>
-            <div className="flex flex-col gap-3">
-              {recent.map((p) => (
-                <div key={p.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <div className="min-w-0">
-                    <strong className="text-xs font-bold text-slate-800 block truncate">{p.patient}</strong>
-                    <span className="text-[10px] text-slate-400">{p.bank} · {p.care}</span>
-                  </div>
-                  <strong className="text-xs font-bold text-emerald-700 whitespace-nowrap ml-3">+{fmtShortFCFA(p.amount)}</strong>
+        <div className="flex flex-col gap-3">
+          {activities.map((a) => {
+            const meta = activityMeta[a.type];
+            return (
+              <div key={a.id} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+                <div className={`w-10 h-10 rounded-xl ${meta.bg} ${meta.color} flex items-center justify-center text-lg flex-shrink-0`}><i className={`ti ${meta.icon}`}></i></div>
+                <div className="flex-1 min-w-0">
+                  <strong className="text-sm font-bold text-slate-800 block truncate">{meta.label} · {a.patient}</strong>
+                  <span className="text-xs text-slate-500">{a.care} · {a.bank}</span>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="glass-panel-premium rounded-3xl p-6 border border-slate-100 shadow-sm cursor-pointer hover:-translate-y-0.5 transition-all" onClick={() => navigateToTab('patients')}>
-            <h3 className="text-sm font-bold text-slate-800 uppercase tracking-wider mb-2">Patients financés</h3>
-            <p className="text-xs text-slate-500 mb-0">Consultez les dossiers des patients pris en charge dans votre établissement →</p>
-          </div>
+                <div className="text-right flex-shrink-0">
+                  {a.amount ? <strong className="text-sm font-bold text-emerald-700 block">+{fmtFCFA(a.amount)}</strong> : <span className="text-xs font-semibold text-slate-400">—</span>}
+                  <span className="text-[10px] text-slate-400">{a.time}</span>
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
