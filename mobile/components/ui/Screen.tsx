@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -18,19 +19,31 @@ export default function Screen({ children, scroll = true, padded = false, style,
 
   const Container = scroll ? ScrollView : View;
   const containerProps = scroll
-    ? { contentContainerStyle: [padded && styles.padded, contentStyle], showsVerticalScrollIndicator: false }
-    : { style: [{ flex: 1 }, padded && styles.padded, contentStyle] };
+    ? { contentContainerStyle: [styles.inner, padded && styles.padded, contentStyle], showsVerticalScrollIndicator: false }
+    : { style: [{ flex: 1 }, styles.inner, padded && styles.padded, contentStyle] };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background, paddingTop: insets.top }, style]}>
+    <LinearGradient
+      colors={[colors.gradientStart, colors.gradientEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.root, { paddingTop: insets.top }, style]}
+    >
       <Container {...(containerProps as any)}>{children}</Container>
-    </View>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  // Phone-first layouts: on large viewports (RN Web) the content stays a
+  // centered column instead of stretching edge to edge.
+  inner: {
+    width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
   },
   padded: {
     paddingHorizontal: 22,

@@ -34,15 +34,15 @@ export default function DocumentsStep() {
     <Screen padded>
       <StepHeader step={4} totalSteps={5} />
 
-      <Text style={[styles.title, { color: colors.text }]}>
+      <Text style={[styles.title, { color: colors.heading }]}>
         Complétez votre <Text style={{ fontFamily: Fonts.displayItalic }}>dossier</Text>
       </Text>
-      <Text style={[styles.sub, { color: colors.textMuted }]}>
+      <Text style={[styles.sub, { color: colors.headingMuted }]}>
         Un seul justificatif suffit pour ce financement, le reste est déjà dans votre profil vérifié.
       </Text>
 
-      <View style={[styles.policyBanner, { backgroundColor: colors.secondarySoft, borderColor: colors.border }]}>
-        <ShieldCheck size={16} color={colors.secondary} />
+      <View style={[styles.policyBanner, { backgroundColor: 'rgba(255,255,255,0.9)', borderColor: 'transparent' }]}>
+        <ShieldCheck size={16} color={colors.primary} />
         <Text style={[styles.policyText, { color: colors.text }]}>
           Par sécurité, {selectedOffer?.bank ?? 'votre organisme prêteur'} verse les fonds directement à{' '}
           <Text style={{ fontFamily: Fonts.bodyBold }}>{establishment}</Text>, jamais sur votre compte. La facture
@@ -59,7 +59,7 @@ export default function DocumentsStep() {
             <Text style={[styles.rowTitle, { color: colors.text }]}>Carte d'identité</Text>
             <Text style={[styles.rowSub, { color: colors.textMuted }]}>Déjà vérifiée</Text>
           </View>
-          <View style={[styles.check, { backgroundColor: colors.success }]}>
+          <View style={[styles.check, { backgroundColor: colors.primary }]}>
             <Check size={12} color="#fff" />
           </View>
         </Card>
@@ -72,7 +72,7 @@ export default function DocumentsStep() {
             <Text style={[styles.rowTitle, { color: colors.text }]}>Bulletins de salaire</Text>
             <Text style={[styles.rowSub, { color: colors.textMuted }]}>Déjà vérifiés</Text>
           </View>
-          <View style={[styles.check, { backgroundColor: colors.success }]}>
+          <View style={[styles.check, { backgroundColor: colors.primary }]}>
             <Check size={12} color="#fff" />
           </View>
         </Card>
@@ -86,7 +86,7 @@ export default function DocumentsStep() {
               <Text style={[styles.rowTitle, { color: colors.text }]}>Relevé bancaire (3 mois)</Text>
               <Text style={[styles.rowSub, { color: colors.textMuted }]}>Fourni automatiquement par votre banque</Text>
             </View>
-            <View style={[styles.check, { backgroundColor: colors.success }]}>
+            <View style={[styles.check, { backgroundColor: colors.primary }]}>
               <Check size={12} color="#fff" />
             </View>
           </Card>
@@ -104,7 +104,7 @@ export default function DocumentsStep() {
               </Text>
             </View>
             {kycDocs.devis ? (
-              <View style={[styles.check, { backgroundColor: colors.success }]}>
+              <View style={[styles.check, { backgroundColor: colors.primary }]}>
                 <Check size={12} color="#fff" />
               </View>
             ) : (

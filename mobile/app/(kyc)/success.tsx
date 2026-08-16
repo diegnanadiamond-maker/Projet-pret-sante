@@ -40,18 +40,18 @@ export default function KycSuccessScreen() {
       <View style={styles.body}>
         {!ready ? (
           <>
-            <PulseDot color={colors.primary} size={14} />
-            <Text style={[styles.processingText, { color: colors.textMuted }]}>Analyse de vos documents…</Text>
+            <PulseDot color="#FFFFFF" size={14} />
+            <Text style={[styles.processingText, { color: colors.headingMuted }]}>Analyse de vos documents…</Text>
           </>
         ) : (
           <>
-            <Animated.View style={[styles.iconCircle, { backgroundColor: colors.successSoft }, iconStyle]}>
+            <Animated.View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.9)' }, iconStyle]}>
               <ShieldCheck size={40} color={colors.success} />
             </Animated.View>
-            <Text style={[styles.title, { color: colors.text }]}>
+            <Text style={[styles.title, { color: colors.heading }]}>
               Identité <Text style={{ fontFamily: Fonts.displayItalic }}>vérifiée</Text>
             </Text>
-            <Text style={[styles.sub, { color: colors.textMuted }]}>
+            <Text style={[styles.sub, { color: colors.headingMuted }]}>
               {isBanked
                 ? 'Votre profil est validé. Vous pouvez maintenant simuler et demander votre premier financement santé auprès de votre banque.'
                 : "Votre profil est validé. Sans compte bancaire, votre financement passera par Orange Money et son prêt Tiktak."}

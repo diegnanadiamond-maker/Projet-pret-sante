@@ -43,16 +43,16 @@ export default function KycBankInfoScreen() {
       <StepHeader title="Coordonnées bancaires" />
 
       <View style={styles.intro}>
-        <Text style={[styles.title, { color: colors.text }]}>
-          Où doit-on <Text style={{ fontFamily: Fonts.displayItalic }}>vous verser</Text> les fonds ?
+        <Text style={[styles.title, { color: colors.heading }]}>
+          Renseignez votre <Text style={{ fontFamily: Fonts.displayItalic }}>compte bancaire</Text>
         </Text>
-        <Text style={[styles.sub, { color: colors.textMuted }]}>
-          Ces informations servent uniquement au décaissement de votre prêt vers votre compte.
+        <Text style={[styles.sub, { color: colors.headingMuted }]}>
+          Les informations renseignées seront utilisées uniquement pour le versement des fonds, selon les conditions de votre financement.
         </Text>
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={[styles.formLabel, { color: colors.textMuted }]}>Banque</Text>
+        <Text style={[styles.formLabel, { color: colors.headingMuted }]}>Banque</Text>
         <TouchableOpacity
           style={[styles.select, { backgroundColor: colors.surfaceSunken, borderColor: colors.border }]}
           onPress={() => setShowPicker((v) => !v)}
@@ -114,8 +114,12 @@ export default function KycBankInfoScreen() {
         {error ? <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text> : null}
       </View>
 
+      <Text style={[styles.securityNote, { color: colors.headingMuted }]}>
+        🔒 Vos données bancaires sont protégées et utilisées uniquement dans le cadre de votre demande.
+      </Text>
+
       <View style={styles.footer}>
-        <Button label="Continuer" onPress={handleContinue} />
+        <Button label="Enregistrer mes coordonnées" onPress={handleContinue} />
       </View>
     </Screen>
   );
@@ -190,6 +194,12 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bodyMedium,
     fontSize: 12.5,
     lineHeight: 18,
+  },
+  securityNote: {
+    fontFamily: Fonts.body,
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: Spacing.md,
   },
   footer: {
     marginTop: Spacing.xl,

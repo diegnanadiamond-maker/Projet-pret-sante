@@ -24,11 +24,11 @@ export default function KycBankStatusScreen() {
     <Screen padded>
       <StepHeader title="Situation bancaire" />
 
-      <Text style={[styles.title, { color: colors.text }]}>
+      <Text style={[styles.title, { color: colors.heading }]}>
         Avez-vous un{' '}
         <Text style={{ fontFamily: Fonts.displayItalic }}>compte bancaire</Text> ?
       </Text>
-      <Text style={[styles.sub, { color: colors.textMuted }]}>
+      <Text style={[styles.sub, { color: colors.headingMuted }]}>
         Cela détermine comment vous recevrez votre financement santé.
       </Text>
 

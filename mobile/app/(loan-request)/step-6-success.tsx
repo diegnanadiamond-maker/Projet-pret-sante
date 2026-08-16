@@ -14,7 +14,7 @@ import PulseLine from '@/components/ui/PulseLine';
 export default function LoanSuccessStep() {
   const router = useRouter();
   const colors = Colors[useColorScheme() ?? 'light'];
-  const { selectedOffer, loanAmount } = useData();
+  const { loanAmount } = useData();
   const { id } = useLocalSearchParams<{ id?: string }>();
 
   const scale = useSharedValue(0.6);
@@ -35,26 +35,26 @@ export default function LoanSuccessStep() {
   return (
     <Screen padded scroll={false}>
       <View style={styles.body}>
-        <Animated.View style={[styles.iconCircle, { backgroundColor: colors.primarySoft }, iconStyle]}>
+        <Animated.View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.9)' }, iconStyle]}>
           <PartyPopper size={38} color={colors.primary} />
         </Animated.View>
 
-        <Text style={[styles.title, { color: colors.text }]}>
-          Dossier <Text style={{ fontFamily: Fonts.displayItalic }}>envoyé</Text> !
+        <Text style={[styles.title, { color: colors.heading }]}>
+          Votre demande a bien été <Text style={{ fontFamily: Fonts.displayItalic }}>enregistrée</Text>
         </Text>
-        <Text style={[styles.sub, { color: colors.textMuted }]}>
-          {selectedOffer?.bank ?? 'La banque'} examine votre demande de {format(loanAmount)}.{'\n'}
-          Réponse attendue sous {selectedOffer?.delay ?? '48h'}.
+        <Text style={[styles.sub, { color: colors.headingMuted }]}>
+          Votre dossier de {format(loanAmount)} est maintenant transmis pour étude.{'\n'}
+          Vous pourrez suivre son évolution directement depuis votre espace.
         </Text>
 
         <View style={{ marginTop: Spacing.lg }}>
-          <PulseLine color={colors.primary} width={130} height={26} />
+          <PulseLine color="#FFFFFF" width={130} height={26} />
         </View>
       </View>
 
       <View style={styles.footer}>
         <Button
-          label="Suivre mon dossier"
+          label="Suivre ma demande"
           onPress={() => (id ? router.replace({ pathname: '/loan-tracker', params: { id } }) : router.replace('/(tabs)'))}
         />
       </View>
@@ -78,7 +78,10 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: Fonts.display,
-    fontSize: 26,
+    fontSize: 24,
+    lineHeight: 31,
+    textAlign: 'center',
+    paddingHorizontal: Spacing.md,
   },
   sub: {
     fontFamily: Fonts.body,

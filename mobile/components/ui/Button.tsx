@@ -38,10 +38,8 @@ export default function Button({
     onPress?.();
   };
 
-  const bg =
-    variant === 'primary' ? colors.primary : variant === 'secondary' ? colors.secondary : 'transparent';
-  const textColor =
-    variant === 'primary' || variant === 'secondary' ? '#FFFFFF' : variant === 'outline' ? colors.text : colors.primary;
+  const bg = variant === 'primary' ? colors.primary : variant === 'secondary' ? '#FFFFFF' : 'transparent';
+  const textColor = variant === 'primary' ? '#FFFFFF' : colors.primary;
   const borderColor = variant === 'outline' ? colors.borderStrong : 'transparent';
 
   return (

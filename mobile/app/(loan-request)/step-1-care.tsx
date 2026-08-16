@@ -11,10 +11,10 @@ import StepHeader from '@/components/ui/StepHeader';
 import Button from '@/components/ui/Button';
 
 const CARE_TYPES = [
-  { id: 1, icon: Smile, label: 'Prothèse dentaire' },
-  { id: 2, icon: Baby, label: 'Accouchement' },
+  { id: 1, icon: Smile, label: 'Soins dentaires' },
+  { id: 2, icon: Baby, label: 'Maternité & accouchement' },
   { id: 3, icon: Activity, label: 'Bilan de santé' },
-  { id: 4, icon: Plus, label: 'Autre soin' },
+  { id: 4, icon: Plus, label: 'Autre besoin de santé' },
 ];
 
 const ESTABLISHMENTS = ['Clinique Avicenne – Abidjan', 'Centre Médical IBK – Plateau', 'Polyclinique Internationale'];
@@ -29,11 +29,11 @@ export default function CareTypeStep() {
     <Screen padded>
       <StepHeader step={1} totalSteps={5} />
 
-      <Text style={[styles.title, { color: colors.text }]}>
-        Quel soin allez-vous{' '}
+      <Text style={[styles.title, { color: colors.heading }]}>
+        Quel besoin de santé souhaitez-vous{' '}
         <Text style={{ fontFamily: Fonts.displayItalic }}>financer</Text> ?
       </Text>
-      <Text style={[styles.sub, { color: colors.textMuted }]}>Choisissez la catégorie qui correspond le mieux.</Text>
+      <Text style={[styles.sub, { color: colors.headingMuted }]}>Sélectionnez le soin ou la dépense de santé concerné(e).</Text>
 
       <View style={styles.grid}>
         {CARE_TYPES.map((c) => {
@@ -60,7 +60,10 @@ export default function CareTypeStep() {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={[styles.formLabel, { color: colors.textMuted }]}>Établissement de santé</Text>
+        <Text style={[styles.formLabel, { color: colors.headingMuted }]}>Votre établissement de santé</Text>
+        <Text style={[styles.formHint, { color: colors.headingMuted }]}>
+          Sélectionnez l'établissement auprès duquel vos soins seront réalisés.
+        </Text>
         <TouchableOpacity
           style={[styles.select, { backgroundColor: colors.surfaceSunken, borderColor: colors.border }]}
           onPress={() => setShowPicker((v) => !v)}
@@ -87,7 +90,7 @@ export default function CareTypeStep() {
       </View>
 
       <View style={styles.footer}>
-        <Button label="Continuer" onPress={() => router.push('/(loan-request)/step-2-amount')} />
+        <Button label="Poursuivre ma simulation" onPress={() => router.push('/(loan-request)/step-2-amount')} />
       </View>
     </Screen>
   );
@@ -132,6 +135,13 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bodySemiBold,
     fontSize: 12,
     paddingHorizontal: 2,
+  },
+  formHint: {
+    fontFamily: Fonts.body,
+    fontSize: 11.5,
+    lineHeight: 16,
+    paddingHorizontal: 2,
+    marginTop: -4,
   },
   select: {
     padding: 15,

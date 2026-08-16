@@ -45,10 +45,10 @@ export default function FeesStep() {
     <Screen padded>
       <StepHeader step={3} totalSteps={5} />
 
-      <Text style={[styles.title, { color: colors.text }]}>
+      <Text style={[styles.title, { color: colors.heading }]}>
         Réglez les <Text style={{ fontFamily: Fonts.displayItalic }}>frais de dossier</Text>
       </Text>
-      <Text style={[styles.sub, { color: colors.textMuted }]}>
+      <Text style={[styles.sub, { color: colors.headingMuted }]}>
         Un paiement unique pour lancer l'étude de votre demande par la banque.
       </Text>
 
@@ -58,19 +58,19 @@ export default function FeesStep() {
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.feeLabel, { color: colors.textMuted }]}>Frais de dossier</Text>
-          <Text style={[styles.feeAmount, { color: colors.secondary }]}>{formatPrice(FRAIS_DOSSIER)}</Text>
+          <Text style={[styles.feeAmount, { color: colors.primary }]}>{formatPrice(FRAIS_DOSSIER)}</Text>
         </View>
       </Card>
 
-      <View style={[styles.policyBanner, { backgroundColor: colors.secondarySoft, borderColor: colors.border }]}>
-        <ShieldCheck size={16} color={colors.secondary} />
+      <View style={[styles.policyBanner, { backgroundColor: 'rgba(255,255,255,0.9)', borderColor: 'transparent' }]}>
+        <ShieldCheck size={16} color={colors.primary} />
         <Text style={[styles.policyText, { color: colors.text }]}>
           Ces frais couvrent l'étude et le traitement de votre dossier par la banque. Ils sont
           distincts du montant du prêt, qui sera lui versé directement à votre établissement de santé.
         </Text>
       </View>
 
-      <Text style={[styles.formLabel, { color: colors.textMuted, marginTop: Spacing.lg }]}>Moyen de paiement</Text>
+      <Text style={[styles.formLabel, { color: colors.headingMuted, marginTop: Spacing.lg }]}>Moyen de paiement</Text>
       <View style={{ gap: 10 }}>
         {PAYMENT_METHODS.map((m) => {
           const selected = method === m.id;

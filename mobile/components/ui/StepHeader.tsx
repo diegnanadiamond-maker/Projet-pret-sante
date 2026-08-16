@@ -26,9 +26,9 @@ export default function StepHeader({ title, step, totalSteps, onBack, showBack =
       {showBack ? (
         <TouchableOpacity
           onPress={onBack ?? (() => router.back())}
-          style={[styles.backBtn, { backgroundColor: colors.surfaceSunken, borderColor: colors.border }]}
+          style={[styles.backBtn, { backgroundColor: 'rgba(255,255,255,0.22)', borderColor: 'rgba(255,255,255,0.3)' }]}
         >
-          <ArrowLeft size={18} color={colors.text} />
+          <ArrowLeft size={18} color="#FFFFFF" />
         </TouchableOpacity>
       ) : (
         <View style={styles.spacer} />
@@ -52,7 +52,7 @@ export default function StepHeader({ title, step, totalSteps, onBack, showBack =
               style={[
                 styles.dot,
                 {
-                  backgroundColor: i < (step ?? 0) ? colors.primary : colors.border,
+                  backgroundColor: i < (step ?? 0) ? '#FFFFFF' : 'rgba(255,255,255,0.35)',
                   width: i === (step ?? 0) - 1 ? 18 : 6,
                 },
               ]}
