@@ -88,7 +88,6 @@ function App() {
   const [userRole, setUserRole] = useState(savedSession ? 'clinique' : null); // 'clinique', 'admin', 'bank'
   const [clinicProfile, setClinicProfile] = useState(savedSession); // infos de la clinique connectée
   const [activeTab, setActiveTab] = useState('dashboard');
-  const [toast, setToast] = useState(null);
 
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('pretSanteDarkMode');
@@ -111,10 +110,9 @@ function App() {
     document.body.classList.toggle('dark-mode', isDarkMode);
   }, [isDarkMode]);
 
-  const showToast = (text) => {
-    setToast(text);
-    setTimeout(() => setToast(prev => prev === text ? null : prev), 4000);
-  };
+  // Toast popups were removed for a cleaner UI; kept as a no-op so call
+  // sites throughout the app don't need to be touched individually.
+  const showToast = () => {};
 
   // --- ACTIONS ---
   const handleLogin = (role, profile = null) => {
@@ -206,16 +204,6 @@ function App() {
 
   return (
     <div className="app-shell">
-      {toast && (
-        <div className="toast-notification animate-slide-in">
-          <div className="toast-content">
-            <i className="ti ti-circle-check-filled"></i>
-            <span>{toast}</span>
-          </div>
-          <div className="toast-progress"></div>
-        </div>
-      )}
-
       <Sidebar
         userRole={userRole}
         activeTab={activeTab}
@@ -1365,14 +1353,21 @@ const BankOverviewView = ({ navigateToTab }) => {
   );
 };
 
+const STATUS_PILL_VARIANT = { 'Nouveau': 'neutral', 'En examen': 'warning', 'Vérification': 'info', 'Validée': 'online' };
+
 const BankRequestsView = ({ showToast }) => {
+  const [applications, setApplications] = useState(MOCK_APPLICATIONS);
+  const [selectedAppId, setSelectedAppId] = useState(MOCK_APPLICATIONS[0].id);
   const [activeModal, setActiveModal] = useState(null); // null, 'contract', 'complement'
-  const [selectedApp, setSelectedApp] = useState(MOCK_APPLICATIONS[0]);
   const [missingDocs, setMissingDocs] = useState({ releve: true, devis: true, ocr: false });
   const [customComment, setCustomComment] = useState("");
   const [riskFilter, setRiskFilter] = useState('Tout');
   const [reviewApp, setReviewApp] = useState(null);
   const [docDecisions, setDocDecisions] = useState({});
+  const [confirmChecked, setConfirmChecked] = useState(false);
+
+  const selectedApp = applications.find(a => a.id === selectedAppId);
+  const selectApp = (app) => { setSelectedAppId(app.id); setConfirmChecked(false); };
 
   const handleGenerateContract = (app = selectedApp) => {
     if (!app?.docs?.includes('Devis')) {
@@ -1386,6 +1381,13 @@ const BankRequestsView = ({ showToast }) => {
     setActiveModal('complement');
   };
 
+  const validateApp = (id) => {
+    setApplications(apps => apps.map(a => (a.id === id ? { ...a, status: 'Validée' } : a)));
+  };
+  const rejectApp = (id) => {
+    setApplications(apps => apps.map(a => (a.id === id ? { ...a, status: 'Rejetée' } : a)));
+  };
+
   const parseAmount = (str) => parseInt(str.replace(/[^\d]/g, ''), 10);
   const calcMonthly = (amount, months, ratePct) => {
     const r = ratePct / 100 / 12;
@@ -1393,13 +1395,13 @@ const BankRequestsView = ({ showToast }) => {
   };
 
   const openReview = (app) => {
-    setSelectedApp(app);
+    selectApp(app);
     setReviewApp(app);
     setDocDecisions(Object.fromEntries(app.docs.map((d) => [d, 'accepted'])));
   };
   const decideDoc = (doc, decision) => setDocDecisions((prev) => ({ ...prev, [doc]: decision }));
 
-  const visibleApplications = riskFilter === 'Tout' ? MOCK_APPLICATIONS : MOCK_APPLICATIONS.filter(a => a.risk === riskFilter);
+  const visibleApplications = riskFilter === 'Tout' ? applications : applications.filter(a => a.risk === riskFilter);
 
   return (
     <div className="pilotage-view animate-fade-in">
@@ -1432,7 +1434,7 @@ const BankRequestsView = ({ showToast }) => {
               <div
                 className={`request-strip-premium glass-panel w-full flex items-center gap-6 p-5 rounded-2xl cursor-pointer hover:bg-slate-50 transition-all border ${selectedApp?.id === app.id ? 'border-blue-500 bg-blue-50/10' : 'border-transparent'}`}
                 key={app.id}
-                onClick={() => setSelectedApp(app)}
+                onClick={() => selectApp(app)}
               >
                 <div className="r-avatar-group flex items-center relative">
                   <div className="r-avatar-main w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-700">{app.user[0]}</div>
@@ -1443,6 +1445,7 @@ const BankRequestsView = ({ showToast }) => {
                   <div className="flex items-center gap-2 mb-1">
                     <strong className="text-sm font-bold text-slate-800 tracking-tight">{app.user}</strong>
                     <span className="text-xs text-slate-400 font-mono">({app.id})</span>
+                    <span className={`status-pill-mini ${STATUS_PILL_VARIANT[app.status]}`}>{app.status}</span>
                   </div>
                   <div className="flex items-center gap-2 text-slate-500 text-xs">
                     <span>{app.care}</span>
@@ -1466,16 +1469,19 @@ const BankRequestsView = ({ showToast }) => {
                 {/* Notification bell and action buttons pushed completely to the right */}
                 <div className="ml-auto flex items-center gap-3">
                   <button className="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition-all" title="Examiner les formalités" onClick={(e) => { e.stopPropagation(); openReview(app); }}><i className="ti ti-file-search"></i></button>
-                  <button className="w-8 h-8 rounded-lg bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center transition-all" title="Accorder le prêt" onClick={(e) => { e.stopPropagation(); setSelectedApp(app); handleGenerateContract(app); }}><i className="ti ti-check"></i></button>
-                  
-                  {/* Pushed all the way to the right of the card */}
-                  <button 
-                    className="relative w-8 h-8 rounded-lg border border-slate-100 hover:border-blue-100 text-slate-400 hover:text-blue-700 flex items-center justify-center transition-all bg-white" 
-                    onClick={(e) => { e.stopPropagation(); showToast(`Rapport d'audit pour ${app.user} disponible`); }}
-                  >
-                    <i className="ti ti-bell"></i>
-                    <div className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-rose-500 rounded-full"></div>
-                  </button>
+                  {app.status === 'Validée' || app.status === 'Rejetée' ? (
+                    <div
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center ${app.status === 'Validée' ? 'bg-emerald-100 text-emerald-600' : 'bg-rose-100 text-rose-600'}`}
+                      title={app.status}
+                    >
+                      <i className={`ti ${app.status === 'Validée' ? 'ti-check' : 'ti-x'}`}></i>
+                    </div>
+                  ) : (
+                    <>
+                      <button className="w-8 h-8 rounded-lg bg-emerald-50 hover:bg-emerald-600 hover:text-white text-emerald-600 flex items-center justify-center transition-all" title="Valider la demande" onClick={(e) => { e.stopPropagation(); validateApp(app.id); }}><i className="ti ti-check"></i></button>
+                      <button className="w-8 h-8 rounded-lg bg-rose-50 hover:bg-rose-600 hover:text-white text-rose-600 flex items-center justify-center transition-all" title="Rejeter la demande" onClick={(e) => { e.stopPropagation(); rejectApp(app.id); }}><i className="ti ti-x"></i></button>
+                    </>
+                  )}
                 </div>
               </div>
             ))}
@@ -1489,7 +1495,9 @@ const BankRequestsView = ({ showToast }) => {
               <h3 className="text-lg font-bold text-slate-800">Audit IA-KYC</h3>
             </div>
             <p className="text-slate-500 text-xs leading-normal tracking-[0.01em] mb-0">
-              Vérification en temps réel des pièces justificatives fournies par <strong>{selectedApp?.user}</strong>.
+              Pré-analyse automatique des pièces fournies par <strong>{selectedApp?.user}</strong> (lecture OCR,
+              cohérence des données). C'est une aide à la décision indicative : vérifiez chaque document via la
+              loupe puis validez la demande vous-même ci-dessous.
             </p>
 
             <div className="doc-audit-stack flex flex-col gap-3">
@@ -1560,14 +1568,38 @@ const BankRequestsView = ({ showToast }) => {
 
             {/* Interactive functional action triggers */}
             <div className="flex flex-col gap-3">
+              {selectedApp?.status === 'Validée' ? (
+                <div className="flex items-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-emerald-700 text-xs font-bold">
+                  <i className="ti ti-circle-check"></i> Demande validée par la banque
+                </div>
+              ) : (
+                <>
+                  <label className="flex items-center gap-2.5 text-xs font-semibold text-slate-600 cursor-pointer p-3 bg-slate-50 border border-slate-100 rounded-xl">
+                    <input
+                      type="checkbox"
+                      className="accent-blue-600 rounded"
+                      checked={confirmChecked}
+                      onChange={(e) => setConfirmChecked(e.target.checked)}
+                    />
+                    J'ai vérifié le dossier de {selectedApp?.user} et je valide cette demande
+                  </label>
+                  <button
+                    onClick={() => { validateApp(selectedApp.id); showToast(`Demande de ${selectedApp.user} validée`); }}
+                    disabled={!confirmChecked}
+                    className="btn-premium primary w-full cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    Valider la demande
+                  </button>
+                </>
+              )}
               <button
                 onClick={() => handleGenerateContract()}
                 disabled={!selectedApp?.docs?.includes('Devis')}
-                className="btn-premium primary w-full cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+                className="btn-premium secondary w-full cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 Générer Contrat de Prêt
               </button>
-              <button 
+              <button
                 onClick={handleRequestComplement}
                 className="btn-premium secondary w-full cursor-pointer"
               >

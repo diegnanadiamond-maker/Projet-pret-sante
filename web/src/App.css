@@ -141,50 +141,6 @@
   padding: 4px;
 }
 
-.toast-notification {
-  position: fixed;
-  top: 2rem;
-  right: 2rem;
-  z-index: 2000;
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(21, 94, 239, 0.2);
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-  overflow: hidden;
-  min-width: 300px;
-}
-
-.toast-content {
-  padding: 1.25rem 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.toast-content i {
-  font-size: 1.5rem;
-  color: var(--color-brand-primary);
-}
-
-.toast-content span {
-  font-weight: 600;
-  color: var(--color-text-main);
-}
-
-.toast-progress {
-  height: 4px;
-  background: var(--color-brand-primary);
-  width: 100%;
-  transform-origin: left;
-  animation: toastProgress 3s linear forwards;
-}
-
-@keyframes toastProgress {
-  from { transform: scaleX(1); }
-  to { transform: scaleX(0); }
-}
-
 .btn-logout-icon:hover { color: #f87171; }
 
 /* --- MAIN CONTENT AREA --- */
@@ -680,8 +636,6 @@ body.dark-mode .enterprise-table th { background: #1e293b; color: #94a3b8; borde
 body.dark-mode .enterprise-table td { border-color: #334155; color: #f8fafc; }
 body.dark-mode .search-box.glass-panel-premium { background: rgba(30, 41, 59, 0.4); border-color: rgba(255,255,255,0.1); }
 body.dark-mode .search-box input { color: white; }
-body.dark-mode .toast-notification { background: #1e293b; border-color: var(--color-brand-primary); }
-body.dark-mode .toast-content span { color: white; }
 body.dark-mode .faq-card, body.dark-mode .security-item, body.dark-mode .audit-item, body.dark-mode .perf-node, body.dark-mode .payout-row { background: #1e293b; border-color: #334155; }
 body.dark-mode .h-body p, body.dark-mode .sec-text span, body.dark-mode .ai-body span { color: #94a3b8; }
 
@@ -1165,6 +1119,9 @@ body.dark-mode .h-body p, body.dark-mode .sec-text span, body.dark-mode .ai-body
 
 .status-pill-mini.online { background: #dcfce7; color: #15803d; }
 .status-pill-mini.offline { background: #fee2e2; color: #b91c1c; }
+.status-pill-mini.warning { background: #fef3c7; color: #b45309; }
+.status-pill-mini.info { background: #dbeafe; color: #1d4ed8; }
+.status-pill-mini.neutral { background: #f1f5f9; color: #475569; }
 
 .bank-load {
   font-size: 0.75rem;
