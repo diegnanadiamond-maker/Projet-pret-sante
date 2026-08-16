@@ -61,16 +61,16 @@ export default function OtpScreen() {
     <Screen padded scroll={false}>
       <StepHeader step={2} totalSteps={2} />
       <View style={styles.body}>
-        <View style={[styles.iconCircle, { backgroundColor: colors.primarySoft }]}>
+        <View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.9)' }]}>
           <MessageCircle size={26} color={colors.primary} />
         </View>
 
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[styles.title, { color: colors.heading }]}>
           Vérifiez votre <Text style={{ fontFamily: Fonts.displayItalic }}>numéro</Text>
         </Text>
-        <Text style={[styles.sub, { color: colors.textMuted }]}>
+        <Text style={[styles.sub, { color: colors.headingMuted }]}>
           Un code à 6 chiffres a été envoyé par SMS au{'\n'}
-          <Text style={{ fontFamily: Fonts.bodyBold, color: colors.text }}>{maskedPhone}</Text>
+          <Text style={{ fontFamily: Fonts.bodyBold, color: colors.heading }}>{maskedPhone}</Text>
         </Text>
 
         <View style={styles.otpWrap}>
@@ -79,11 +79,11 @@ export default function OtpScreen() {
         </View>
 
         <View style={styles.resendRow}>
-          <Text style={[styles.resendText, { color: colors.textMuted }]}>
+          <Text style={[styles.resendText, { color: colors.headingMuted }]}>
             {seconds > 0 ? `Renvoyer le code dans ${seconds}s` : "Vous n'avez rien reçu ?"}
           </Text>
           {seconds === 0 && (
-            <Text style={[styles.resendLink, { color: colors.primary }]} onPress={handleResend}>
+            <Text style={[styles.resendLink, { color: colors.heading }]} onPress={handleResend}>
               Renvoyer le SMS
             </Text>
           )}

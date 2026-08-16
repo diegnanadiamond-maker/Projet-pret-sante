@@ -29,11 +29,11 @@ export default function CareTypeStep() {
     <Screen padded>
       <StepHeader step={1} totalSteps={5} />
 
-      <Text style={[styles.title, { color: colors.text }]}>
+      <Text style={[styles.title, { color: colors.heading }]}>
         Quel soin allez-vous{' '}
         <Text style={{ fontFamily: Fonts.displayItalic }}>financer</Text> ?
       </Text>
-      <Text style={[styles.sub, { color: colors.textMuted }]}>Choisissez la catégorie qui correspond le mieux.</Text>
+      <Text style={[styles.sub, { color: colors.headingMuted }]}>Choisissez la catégorie qui correspond le mieux.</Text>
 
       <View style={styles.grid}>
         {CARE_TYPES.map((c) => {
@@ -60,7 +60,7 @@ export default function CareTypeStep() {
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={[styles.formLabel, { color: colors.textMuted }]}>Établissement de santé</Text>
+        <Text style={[styles.formLabel, { color: colors.headingMuted }]}>Établissement de santé</Text>
         <TouchableOpacity
           style={[styles.select, { backgroundColor: colors.surfaceSunken, borderColor: colors.border }]}
           onPress={() => setShowPicker((v) => !v)}

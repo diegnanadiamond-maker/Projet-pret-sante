@@ -43,10 +43,10 @@ export default function KycDocumentScreen() {
       <StepHeader title="Pièce d'identité" />
 
       <View style={styles.intro}>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[styles.title, { color: colors.heading }]}>
           Photographiez votre <Text style={{ fontFamily: Fonts.displayItalic }}>CNI</Text>
         </Text>
-        <Text style={[styles.sub, { color: colors.textMuted }]}>
+        <Text style={[styles.sub, { color: colors.headingMuted }]}>
           Cadrez bien le document, à plat, sans reflet. Recto puis verso.
         </Text>
       </View>
@@ -126,7 +126,7 @@ function DocSlot({
           </View>
         )}
       </View>
-      <Text style={[styles.slotLabel, { color: colors.text }]}>{label}</Text>
+      <Text style={[styles.slotLabel, { color: colors.heading }]}>{label}</Text>
     </Pressable>
   );
 }

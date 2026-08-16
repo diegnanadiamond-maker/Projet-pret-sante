@@ -39,11 +39,11 @@ export default function RegisterScreen() {
       <StepHeader step={1} totalSteps={2} />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.intro}>
-          <Text style={[styles.eyebrow, { color: colors.primary }]}>Bienvenue</Text>
-          <Text style={[styles.title, { color: colors.text }]}>
+          <Text style={[styles.eyebrow, { color: colors.headingMuted }]}>Bienvenue</Text>
+          <Text style={[styles.title, { color: colors.heading }]}>
             Créez votre <Text style={{ fontFamily: Fonts.displayItalic }}>espace santé</Text>
           </Text>
-          <Text style={[styles.sub, { color: colors.textMuted }]}>
+          <Text style={[styles.sub, { color: colors.headingMuted }]}>
             Quelques informations pour ouvrir votre dossier de financement médical.
           </Text>
         </View>
@@ -87,13 +87,13 @@ export default function RegisterScreen() {
 
         <View style={styles.footer}>
           <Button label="Recevoir mon code de vérification" onPress={handleSubmit} />
-          <Text style={[styles.switchText, { color: colors.textMuted }]}>
+          <Text style={[styles.switchText, { color: colors.headingMuted }]}>
             Déjà un compte ?{' '}
-            <Text style={{ fontFamily: Fonts.bodyBold, color: colors.text }} onPress={() => router.replace('/(auth)/login')}>
+            <Text style={{ fontFamily: Fonts.bodyBold, color: colors.heading }} onPress={() => router.replace('/(auth)/login')}>
               Se connecter
             </Text>
           </Text>
-          <Text style={[styles.legal, { color: colors.textMuted }]}>
+          <Text style={[styles.legal, { color: colors.headingMuted }]}>
             En continuant, vous acceptez les Conditions d'utilisation et la Politique de confidentialité de Prêt Santé.
           </Text>
         </View>

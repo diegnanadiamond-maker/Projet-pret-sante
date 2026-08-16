@@ -35,20 +35,20 @@ export default function LoanSuccessStep() {
   return (
     <Screen padded scroll={false}>
       <View style={styles.body}>
-        <Animated.View style={[styles.iconCircle, { backgroundColor: colors.primarySoft }, iconStyle]}>
+        <Animated.View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.9)' }, iconStyle]}>
           <PartyPopper size={38} color={colors.primary} />
         </Animated.View>
 
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[styles.title, { color: colors.heading }]}>
           Dossier <Text style={{ fontFamily: Fonts.displayItalic }}>envoyé</Text> !
         </Text>
-        <Text style={[styles.sub, { color: colors.textMuted }]}>
+        <Text style={[styles.sub, { color: colors.headingMuted }]}>
           {selectedOffer?.bank ?? 'La banque'} examine votre demande de {format(loanAmount)}.{'\n'}
           Réponse attendue sous {selectedOffer?.delay ?? '48h'}.
         </Text>
 
         <View style={{ marginTop: Spacing.lg }}>
-          <PulseLine color={colors.primary} width={130} height={26} />
+          <PulseLine color="#FFFFFF" width={130} height={26} />
         </View>
       </View>
 

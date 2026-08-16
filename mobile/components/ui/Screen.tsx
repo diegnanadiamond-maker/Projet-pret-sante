@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View, ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '@/constants/Colors';
 import { useColorScheme } from '@/components/useColorScheme';
 
@@ -22,9 +23,14 @@ export default function Screen({ children, scroll = true, padded = false, style,
     : { style: [{ flex: 1 }, padded && styles.padded, contentStyle] };
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background, paddingTop: insets.top }, style]}>
+    <LinearGradient
+      colors={[colors.gradientStart, colors.gradientEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.root, { paddingTop: insets.top }, style]}
+    >
       <Container {...(containerProps as any)}>{children}</Container>
-    </View>
+    </LinearGradient>
   );
 }
 

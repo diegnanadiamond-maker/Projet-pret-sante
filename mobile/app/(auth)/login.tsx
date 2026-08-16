@@ -35,13 +35,13 @@ export default function LoginScreen() {
       <StepHeader showBack title="" />
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <View style={styles.intro}>
-          <View style={[styles.iconCircle, { backgroundColor: colors.secondarySoft }]}>
-            <HeartPulse size={22} color={colors.secondary} />
+          <View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.9)' }]}>
+            <HeartPulse size={22} color={colors.primary} />
           </View>
-          <Text style={[styles.title, { color: colors.text }]}>
+          <Text style={[styles.title, { color: colors.heading }]}>
             Content de vous <Text style={{ fontFamily: Fonts.displayItalic }}>revoir</Text>
           </Text>
-          <Text style={[styles.sub, { color: colors.textMuted }]}>
+          <Text style={[styles.sub, { color: colors.headingMuted }]}>
             Connectez-vous pour suivre vos dossiers de financement.
           </Text>
         </View>
@@ -64,14 +64,14 @@ export default function LoginScreen() {
             isPassword
           />
           {error ? <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text> : null}
-          <Text style={[styles.forgot, { color: colors.primary }]}>Mot de passe oublié ?</Text>
+          <Text style={[styles.forgot, { color: colors.heading }]}>Mot de passe oublié ?</Text>
         </View>
 
         <View style={styles.footer}>
           <Button label="Se connecter" onPress={handleSubmit} />
-          <Text style={[styles.switchText, { color: colors.textMuted }]}>
+          <Text style={[styles.switchText, { color: colors.headingMuted }]}>
             Pas encore de compte ?{' '}
-            <Text style={{ fontFamily: Fonts.bodyBold, color: colors.text }} onPress={() => router.replace('/(auth)/register')}>
+            <Text style={{ fontFamily: Fonts.bodyBold, color: colors.heading }} onPress={() => router.replace('/(auth)/register')}>
               Créer un compte
             </Text>
           </Text>
@@ -120,7 +120,6 @@ const styles = StyleSheet.create({
     marginTop: Spacing.xl,
     gap: Spacing.md,
     paddingBottom: Spacing.xxl,
-    alignItems: 'center',
   },
   switchText: {
     fontFamily: Fonts.body,

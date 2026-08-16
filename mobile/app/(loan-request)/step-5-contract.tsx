@@ -29,13 +29,13 @@ export default function ContractStep() {
     <Screen padded>
       <StepHeader step={5} totalSteps={5} />
 
-      <Text style={[styles.title, { color: colors.text }]}>
+      <Text style={[styles.title, { color: colors.heading }]}>
         Relisez et <Text style={{ fontFamily: Fonts.displayItalic }}>signez</Text>
       </Text>
-      <Text style={[styles.sub, { color: colors.textMuted }]}>Dernière étape avant l'envoi à {selectedOffer?.bank ?? 'la banque'}.</Text>
+      <Text style={[styles.sub, { color: colors.headingMuted }]}>Dernière étape avant l'envoi à {selectedOffer?.bank ?? 'la banque'}.</Text>
 
       <Card style={styles.contractCard}>
-        <Text style={[styles.contractHeader, { color: colors.secondary, borderBottomColor: colors.border }]}>
+        <Text style={[styles.contractHeader, { color: colors.text, borderBottomColor: colors.border }]}>
           ACTE DE CRÉDIT MÉDICAL
         </Text>
         <ContractLine label="Bénéficiaire" value={fullName || 'Kouamé Adou'} colors={colors} />
@@ -47,14 +47,14 @@ export default function ContractStep() {
         <ContractLine label="Décaissé à" value={establishment} colors={colors} bold last />
       </Card>
 
-      <View style={[styles.disclaimer, { backgroundColor: colors.secondarySoft, borderColor: colors.border }]}>
+      <View style={[styles.disclaimer, { backgroundColor: colors.surfaceSunken, borderColor: 'transparent' }]}>
         <Text style={[styles.disclaimerText, { color: colors.text }]}>
           Les fonds sont versés directement à <Text style={{ fontFamily: Fonts.bodyBold }}>{establishment}</Text> sur
           présentation de la facture pro-forma, jamais sur votre compte personnel.
         </Text>
       </View>
 
-      <Text style={[styles.signLabel, { color: colors.textMuted }]}>Signature électronique</Text>
+      <Text style={[styles.signLabel, { color: colors.headingMuted }]}>Signature électronique</Text>
       <SignaturePad onChange={setSigned} />
 
       <View style={styles.footer}>
@@ -68,7 +68,7 @@ function ContractLine({ label, value, colors, bold, last }: any) {
   return (
     <View style={[styles.line, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }]}>
       <Text style={[styles.lineLabel, { color: colors.textMuted }]}>{label}</Text>
-      <Text style={[styles.lineValue, { color: colors.text }, bold && { fontFamily: Fonts.bodyBold, color: colors.secondary }]}>{value}</Text>
+      <Text style={[styles.lineValue, { color: colors.text }, bold && { fontFamily: Fonts.bodyBold }]}>{value}</Text>
     </View>
   );
 }

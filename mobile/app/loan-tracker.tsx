@@ -42,8 +42,8 @@ export default function LoanTrackerScreen() {
           <View style={[styles.notFoundIcon, { backgroundColor: colors.accentSkySoft }]}>
             <FolderX size={26} color={colors.accentSky} />
           </View>
-          <Text style={[styles.notFoundTitle, { color: colors.text }]}>Dossier introuvable</Text>
-          <Text style={[styles.notFoundBody, { color: colors.textMuted }]}>
+          <Text style={[styles.notFoundTitle, { color: colors.heading }]}>Dossier introuvable</Text>
+          <Text style={[styles.notFoundBody, { color: colors.headingMuted }]}>
             Cette demande n'existe plus ou a été supprimée.
           </Text>
         </View>
@@ -60,12 +60,12 @@ export default function LoanTrackerScreen() {
       <StepHeader title="Suivi de mon prêt" />
 
       <View style={styles.contextRow}>
-        <View style={[styles.contextIcon, { backgroundColor: colors.secondarySoft }]}>
-          <care.icon size={18} color={colors.secondary} />
+        <View style={[styles.contextIcon, { backgroundColor: 'rgba(255,255,255,0.9)' }]}>
+          <care.icon size={18} color={colors.primary} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.contextTitle, { color: colors.text }]}>{care.label}</Text>
-          <Text style={[styles.contextSub, { color: colors.textMuted }]}>{loan.establishment}</Text>
+          <Text style={[styles.contextTitle, { color: colors.heading }]}>{care.label}</Text>
+          <Text style={[styles.contextSub, { color: colors.headingMuted }]}>{loan.establishment}</Text>
         </View>
         <View
           style={[styles.contextBadge, { backgroundColor: loan.status === 'active' ? colors.successSoft : colors.accentSkySoft }]}
@@ -77,12 +77,12 @@ export default function LoanTrackerScreen() {
       </View>
 
       <View style={styles.trackBlock}>
-        <Text style={[styles.trackAmount, { color: colors.text }]}>{formatFCFA(loan.loanAmount)}</Text>
-        <Text style={[styles.trackSub, { color: colors.textMuted }]}>
+        <Text style={[styles.trackAmount, { color: colors.heading }]}>{formatFCFA(loan.loanAmount)}</Text>
+        <Text style={[styles.trackSub, { color: colors.headingMuted }]}>
           {loan.selectedOffer ? `${loan.selectedOffer.bank} · ${loan.loanDuration} mois` : `${loan.loanDuration} mois`}
         </Text>
 
-        <Text style={[styles.sectionTitle, { color: colors.textMuted, marginTop: Spacing.xl }]}>Suivi de la demande</Text>
+        <Text style={[styles.sectionTitle, { color: colors.headingMuted, marginTop: Spacing.xl }]}>Suivi de la demande</Text>
 
         <View style={styles.trackSteps}>
           {TRACK_STEPS.map((s, i) => {
@@ -91,23 +91,23 @@ export default function LoanTrackerScreen() {
             return (
               <View key={i} style={styles.trackStepRow}>
                 {i < TRACK_STEPS.length - 1 && (
-                  <View style={[styles.trackLine, { backgroundColor: done ? colors.primary : colors.border }]} />
+                  <View style={[styles.trackLine, { backgroundColor: done ? colors.primary : 'rgba(255,255,255,0.35)' }]} />
                 )}
                 <View
                   style={[
                     styles.trackDot,
                     {
-                      backgroundColor: done || active ? colors.primary : colors.surface,
-                      borderColor: done || active ? colors.primary : colors.border,
+                      backgroundColor: done || active ? colors.primary : 'rgba(255,255,255,0.9)',
+                      borderColor: done || active ? colors.primary : 'transparent',
                     },
                   ]}
                 >
-                  {done ? <Check size={15} color="#fff" /> : <s.icon size={15} color={done || active ? '#fff' : colors.textMuted} />}
+                  {done ? <Check size={15} color="#fff" /> : <s.icon size={15} color={done || active ? '#fff' : colors.headingMuted} />}
                 </View>
                 <Text
                   style={[
                     styles.trackStepLabel,
-                    { color: done || active ? colors.text : colors.textMuted, fontFamily: active ? Fonts.bodyBold : Fonts.bodyMedium },
+                    { color: done || active ? colors.heading : colors.headingMuted, fontFamily: active ? Fonts.bodyBold : Fonts.bodyMedium },
                   ]}
                 >
                   {s.label}
@@ -120,12 +120,12 @@ export default function LoanTrackerScreen() {
 
       {loan.status === 'active' && (
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Échéancier</Text>
+          <Text style={[styles.sectionTitle, { color: colors.headingMuted }]}>Échéancier</Text>
           <View style={{ gap: 10 }}>
             {[1, 2, 3].map((n) => (
               <Card key={n} style={styles.payRow}>
-                <View style={[styles.payIcon, { backgroundColor: colors.secondarySoft }]}>
-                  <CalendarDays size={16} color={colors.secondary} />
+                <View style={[styles.payIcon, { backgroundColor: colors.primarySoft }]}>
+                  <CalendarDays size={16} color={colors.primary} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.payTitle, { color: colors.text }]}>Échéance {n}</Text>

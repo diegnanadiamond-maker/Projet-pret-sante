@@ -14,7 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import { LinearGradient } from 'expo-linear-gradient';
 import { HeartPulse, Building2, ShieldCheck } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
-import { Fonts, Radius, Spacing } from '@/constants/theme';
+import { Fonts, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/components/useColorScheme';
 import Button from '@/components/ui/Button';
 import PulseLine from '@/components/ui/PulseLine';
@@ -67,16 +67,20 @@ export default function OnboardingScreen() {
   }, []);
 
   return (
-    <View style={[styles.container, { backgroundColor: colors.background }]}>
+    <LinearGradient
+      colors={[colors.gradientStart, colors.gradientEnd]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={styles.container}
+    >
       <StatusBar style="light" />
       <ImageBackground
-        source={require('../assets/images/1.png')}
+        source={require('../assets/images/men-health-blood-pressure-measuring 1.png')}
         style={styles.hero}
-        imageStyle={styles.heroImage}
         resizeMode="cover"
       >
         <LinearGradient
-          colors={['rgba(11,30,61,0.5)', 'rgba(21,94,239,0.78)']}
+          colors={['rgba(10,40,42,0.35)', colors.gradientStart]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={StyleSheet.absoluteFillObject}
@@ -87,7 +91,7 @@ export default function OnboardingScreen() {
             <Text style={[styles.heroTitleItalic, { color: colors.heroAccent }]}>Votre financement non plus.</Text>
           </Text>
 
-          <PulseLine color={colors.heroAccent} width={140} height={30} />
+          <PulseLine color="#FFFFFF" width={140} height={30} />
         </View>
       </ImageBackground>
 
@@ -103,11 +107,11 @@ export default function OnboardingScreen() {
         {SLIDES.map((s, i) => (
           <View key={i} style={[styles.slide, { width }]}>
             <View style={styles.slideIcon}>
-              <s.icon size={30} color={colors.primary} />
+              <s.icon size={30} color="#FFFFFF" />
             </View>
-            <Text style={[styles.slideTag, { color: colors.primary }]}>{s.tag}</Text>
-            <Text style={[styles.slideTitle, { color: colors.text }]}>{s.title}</Text>
-            <Text style={[styles.slideBody, { color: colors.textMuted }]}>{s.body}</Text>
+            <Text style={[styles.slideTag, { color: '#FFFFFF' }]}>{s.tag}</Text>
+            <Text style={[styles.slideTitle, { color: colors.heading }]}>{s.title}</Text>
+            <Text style={[styles.slideBody, { color: colors.headingMuted }]}>{s.body}</Text>
           </View>
         ))}
       </ScrollView>
@@ -118,7 +122,7 @@ export default function OnboardingScreen() {
             key={i}
             style={[
               styles.dot,
-              { backgroundColor: i === slide ? colors.primary : colors.border, width: i === slide ? 20 : 6 },
+              { backgroundColor: i === slide ? '#FFFFFF' : 'rgba(255,255,255,0.35)', width: i === slide ? 20 : 6 },
             ]}
           />
         ))}
@@ -128,11 +132,11 @@ export default function OnboardingScreen() {
         <Button label="Créer un compte" onPress={() => router.push('/(auth)/register')} />
         <Button
           label="J'ai déjà un compte"
-          variant="outline"
+          style={{ backgroundColor: colors.secondary }}
           onPress={() => router.push('/(auth)/login')}
         />
       </View>
-    </View>
+    </LinearGradient>
   );
 }
 
@@ -141,16 +145,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   hero: {
+    height: '52%',
     paddingTop: 64,
     paddingBottom: 28,
     paddingHorizontal: Spacing.lg,
-    borderBottomLeftRadius: Radius.xl,
-    borderBottomRightRadius: Radius.xl,
     overflow: 'hidden',
-  },
-  heroImage: {
-    borderBottomLeftRadius: Radius.xl,
-    borderBottomRightRadius: Radius.xl,
   },
   heroContent: {
     gap: 18,

@@ -48,25 +48,25 @@ export default function PartnersScreen() {
 
   return (
     <Screen padded>
-      <Text style={[styles.header, { color: colors.text }]}>
+      <Text style={[styles.header, { color: colors.heading }]}>
         Nos <Text style={{ fontFamily: Fonts.displayItalic }}>partenaires</Text>
       </Text>
-      <Text style={[styles.sub, { color: colors.textMuted }]}>
+      <Text style={[styles.sub, { color: colors.headingMuted }]}>
         Cliniques agréées et banques qui financent vos soins de santé.
       </Text>
 
-      <View style={[styles.segmented, { backgroundColor: colors.surfaceSunken }]}>
+      <View style={[styles.segmented, { backgroundColor: 'rgba(255,255,255,0.25)' }]}>
         <TouchableOpacity
           style={[styles.segment, tab === 'clinics' && { backgroundColor: colors.primary }]}
           onPress={() => setTab('clinics')}
         >
-          <Text style={[styles.segmentText, { color: tab === 'clinics' ? '#FFFFFF' : colors.textMuted }]}>Cliniques</Text>
+          <Text style={[styles.segmentText, { color: tab === 'clinics' ? '#FFFFFF' : colors.headingMuted }]}>Cliniques</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.segment, tab === 'banks' && { backgroundColor: colors.primary }]}
           onPress={() => setTab('banks')}
         >
-          <Text style={[styles.segmentText, { color: tab === 'banks' ? '#FFFFFF' : colors.textMuted }]}>Banques</Text>
+          <Text style={[styles.segmentText, { color: tab === 'banks' ? '#FFFFFF' : colors.headingMuted }]}>Banques</Text>
         </TouchableOpacity>
       </View>
 
@@ -74,8 +74,8 @@ export default function PartnersScreen() {
         <View style={{ gap: 12, marginTop: Spacing.lg }}>
           {CLINICS.map((c) => (
             <Card key={c.name} style={styles.partnerCard}>
-              <View style={[styles.avatar, { backgroundColor: colors.secondarySoft }]}>
-                <Stethoscope size={18} color={colors.secondary} />
+              <View style={[styles.avatar, { backgroundColor: colors.primarySoft }]}>
+                <Stethoscope size={18} color={colors.primary} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.partnerName, { color: colors.text }]}>{c.name}</Text>
@@ -95,7 +95,7 @@ export default function PartnersScreen() {
         </View>
       ) : (
         <>
-          <Text style={[styles.hint, { color: colors.textMuted }]}>
+          <Text style={[styles.hint, { color: colors.headingMuted }]}>
             {selected.length < 2
               ? 'Sélectionnez au moins 2 banques pour les comparer.'
               : `Comparaison de ${selected.length} banques pour ${new Intl.NumberFormat('fr-FR').format(loanAmount)} FCFA sur ${loanDuration} mois.`}
@@ -177,7 +177,7 @@ export default function PartnersScreen() {
       )}
 
       <TouchableOpacity
-        style={[styles.ctaBanner, { backgroundColor: colors.secondary }]}
+        style={[styles.ctaBanner, { backgroundColor: colors.primary }]}
         onPress={() => router.push('/(loan-request)/step-1-care')}
       >
         <View style={{ flex: 1 }}>
@@ -185,7 +185,7 @@ export default function PartnersScreen() {
           <Text style={styles.ctaSub}>Choisissez une clinique et une banque en direct</Text>
         </View>
         <View style={styles.ctaArrow}>
-          <ArrowRight size={16} color={colors.secondary} />
+          <ArrowRight size={16} color={colors.primary} />
         </View>
       </TouchableOpacity>
     </Screen>

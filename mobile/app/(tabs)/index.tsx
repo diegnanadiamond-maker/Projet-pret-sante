@@ -3,7 +3,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Plus, ArrowRight, Smile, Baby, Activity, ChevronRight } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
-import { Fonts, Radius, Shadow, Spacing } from '@/constants/theme';
+import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/components/useColorScheme';
 import { useData, LoanRequest } from '@/context/DataContext';
 import Screen from '@/components/ui/Screen';
@@ -27,17 +27,17 @@ export default function DashboardScreen() {
     <Screen padded>
       <View style={styles.topRow}>
         <View>
-          <Text style={[styles.greeting, { color: colors.textMuted }]}>Bonjour {firstName} 👋</Text>
-          <Text style={[styles.title, { color: colors.text }]}>Votre espace santé</Text>
+          <Text style={[styles.greeting, { color: colors.headingMuted }]}>Bonjour {firstName} 👋</Text>
+          <Text style={[styles.title, { color: colors.heading }]}>Votre espace santé</Text>
         </View>
-        <View style={[styles.avatar, { backgroundColor: colors.primarySoft }]}>
+        <View style={[styles.avatar, { backgroundColor: '#FFFFFF' }]}>
           <Text style={[styles.avatarText, { color: colors.primary }]}>{firstName.charAt(0).toUpperCase()}</Text>
         </View>
       </View>
 
       <TouchableOpacity
         activeOpacity={0.9}
-        style={[styles.ctaCard, Shadow.lifted, { backgroundColor: colors.primary }]}
+        style={styles.ctaCard}
         onPress={() => router.push('/(loan-request)/step-1-care')}
       >
         <View style={styles.ctaPulse}>
@@ -59,9 +59,9 @@ export default function DashboardScreen() {
       </TouchableOpacity>
 
       <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: colors.textMuted }]}>Activité récente</Text>
+        <Text style={[styles.sectionTitle, { color: colors.headingMuted }]}>Activité récente</Text>
         {loans.length === 0 ? (
-          <Text style={[styles.emptyActivity, { color: colors.textMuted }]}>
+          <Text style={[styles.emptyActivity, { color: colors.headingMuted }]}>
             Aucune activité pour l'instant — démarrez votre première demande ci-dessus.
           </Text>
         ) : (

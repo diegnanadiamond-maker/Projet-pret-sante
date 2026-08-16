@@ -43,16 +43,16 @@ export default function KycBankInfoScreen() {
       <StepHeader title="Coordonnées bancaires" />
 
       <View style={styles.intro}>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[styles.title, { color: colors.heading }]}>
           Où doit-on <Text style={{ fontFamily: Fonts.displayItalic }}>vous verser</Text> les fonds ?
         </Text>
-        <Text style={[styles.sub, { color: colors.textMuted }]}>
+        <Text style={[styles.sub, { color: colors.headingMuted }]}>
           Ces informations servent uniquement au décaissement de votre prêt vers votre compte.
         </Text>
       </View>
 
       <View style={styles.formGroup}>
-        <Text style={[styles.formLabel, { color: colors.textMuted }]}>Banque</Text>
+        <Text style={[styles.formLabel, { color: colors.headingMuted }]}>Banque</Text>
         <TouchableOpacity
           style={[styles.select, { backgroundColor: colors.surfaceSunken, borderColor: colors.border }]}
           onPress={() => setShowPicker((v) => !v)}

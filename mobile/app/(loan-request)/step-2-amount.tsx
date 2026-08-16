@@ -27,13 +27,13 @@ export default function AmountStep() {
     <Screen padded>
       <StepHeader step={2} totalSteps={5} />
 
-      <Text style={[styles.title, { color: colors.text }]}>
+      <Text style={[styles.title, { color: colors.heading }]}>
         Quel <Text style={{ fontFamily: Fonts.displayItalic }}>montant</Text> vous faut-il ?
       </Text>
-      <Text style={[styles.sub, { color: colors.textMuted }]}>Ajustez le curseur, la mensualité se calcule en direct.</Text>
+      <Text style={[styles.sub, { color: colors.headingMuted }]}>Ajustez le curseur, la mensualité se calcule en direct.</Text>
 
-      <View style={[styles.amountDisplay, { backgroundColor: colors.surfaceSunken, borderColor: colors.border }]}>
-        <Text style={[styles.amountBig, { color: colors.secondary }]}>{formatPrice(loanAmount)}</Text>
+      <View style={[styles.amountDisplay, { backgroundColor: '#FFFFFF', borderColor: colors.border }]}>
+        <Text style={[styles.amountBig, { color: colors.primary }]}>{formatPrice(loanAmount)}</Text>
         <Text style={[styles.amountSmall, { color: colors.textMuted }]}>Déplacez le curseur pour ajuster</Text>
       </View>
       <Slider
@@ -43,24 +43,24 @@ export default function AmountStep() {
         step={10000}
         value={loanAmount}
         onValueChange={setLoanAmount}
-        minimumTrackTintColor={colors.primary}
-        maximumTrackTintColor={colors.border}
-        thumbTintColor={colors.primary}
+        minimumTrackTintColor="#FFFFFF"
+        maximumTrackTintColor="rgba(255,255,255,0.35)"
+        thumbTintColor="#FFFFFF"
       />
       <View style={styles.rangeLabels}>
-        <Text style={[styles.rangeText, { color: colors.textMuted }]}>50 000</Text>
-        <Text style={[styles.rangeText, { color: colors.textMuted }]}>2 000 000 FCFA</Text>
+        <Text style={[styles.rangeText, { color: colors.headingMuted }]}>50 000</Text>
+        <Text style={[styles.rangeText, { color: colors.headingMuted }]}>2 000 000 FCFA</Text>
       </View>
 
-      <Text style={[styles.formLabel, { color: colors.textMuted, marginTop: Spacing.lg }]}>Durée de remboursement</Text>
+      <Text style={[styles.formLabel, { color: colors.headingMuted, marginTop: Spacing.lg }]}>Durée de remboursement</Text>
       <View style={styles.durationGrid}>
         {[6, 12, 18, 24].map((d) => (
           <TouchableOpacity
             key={d}
             style={[
               styles.durationBtn,
-              { borderColor: colors.border, backgroundColor: colors.surfaceSunken },
-              loanDuration === d && { backgroundColor: colors.primarySoft, borderColor: colors.primary },
+              { borderColor: 'transparent', backgroundColor: '#FFFFFF' },
+              loanDuration === d && { backgroundColor: colors.primary },
             ]}
             onPress={() => setLoanDuration(d)}
           >
@@ -68,7 +68,7 @@ export default function AmountStep() {
               style={[
                 styles.durationText,
                 { color: colors.text },
-                loanDuration === d && { color: colors.primary, fontFamily: Fonts.bodyBold },
+                loanDuration === d && { color: '#FFFFFF', fontFamily: Fonts.bodyBold },
               ]}
             >
               {d} mois
@@ -77,18 +77,18 @@ export default function AmountStep() {
         ))}
       </View>
 
-      <View style={[styles.simCard, { backgroundColor: colors.primarySoft, borderColor: colors.primary }]}>
+      <View style={[styles.simCard, { backgroundColor: colors.primary, borderColor: 'transparent' }]}>
         <View style={styles.simItem}>
-          <Text style={[styles.simVal, { color: colors.secondary }]}>{formatPrice(monthly)}</Text>
-          <Text style={[styles.simLbl, { color: colors.primary }]}>/ mois</Text>
+          <Text style={[styles.simVal, { color: '#FFFFFF' }]}>{formatPrice(monthly)}</Text>
+          <Text style={[styles.simLbl, { color: 'rgba(255,255,255,0.8)' }]}>/ mois</Text>
         </View>
         <View style={styles.simItem}>
-          <Text style={[styles.simVal, { color: colors.secondary }]}>8,5%</Text>
-          <Text style={[styles.simLbl, { color: colors.primary }]}>Taux de base</Text>
+          <Text style={[styles.simVal, { color: '#FFFFFF' }]}>8,5%</Text>
+          <Text style={[styles.simLbl, { color: 'rgba(255,255,255,0.8)' }]}>Taux de base</Text>
         </View>
         <View style={styles.simItem}>
-          <Text style={[styles.simVal, { color: colors.secondary }]}>{formatPrice(monthly * loanDuration)}</Text>
-          <Text style={[styles.simLbl, { color: colors.primary }]}>Total</Text>
+          <Text style={[styles.simVal, { color: '#FFFFFF' }]}>{formatPrice(monthly * loanDuration)}</Text>
+          <Text style={[styles.simLbl, { color: 'rgba(255,255,255,0.8)' }]}>Total</Text>
         </View>
       </View>
 

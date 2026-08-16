@@ -26,14 +26,14 @@ export default function KycIntroScreen() {
       <StepHeader showBack={false} title="Vérification d'identité" />
 
       <View style={styles.hero}>
-        <View style={[styles.iconCircle, { backgroundColor: colors.secondarySoft }]}>
-          <ShieldCheck size={28} color={colors.secondary} />
+        <View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.9)' }]}>
+          <ShieldCheck size={28} color={colors.primary} />
         </View>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[styles.title, { color: colors.heading }]}>
           Confirmons que c'est bien{' '}
           <Text style={{ fontFamily: Fonts.displayItalic }}>vous</Text>
         </Text>
-        <Text style={[styles.sub, { color: colors.textMuted }]}>
+        <Text style={[styles.sub, { color: colors.headingMuted }]}>
           Une vérification rapide et sécurisée, exigée par nos banques partenaires avant tout financement.
         </Text>
       </View>
@@ -56,8 +56,8 @@ export default function KycIntroScreen() {
         <Button label="Commencer la vérification" onPress={() => router.push('/(kyc)/bank-status')} />
         <Button
           label="Passer la vérification pour l'instant"
-          variant="outline"
-          style={{ backgroundColor: colors.surfaceSunken, borderWidth: 0, marginTop: 10 }}
+          variant="secondary"
+          style={{ marginTop: 10 }}
           onPress={() => router.replace('/(tabs)')}
         />
       </View>

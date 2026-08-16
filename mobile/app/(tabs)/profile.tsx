@@ -50,16 +50,16 @@ export default function ProfileScreen() {
 
   return (
     <Screen>
-      <View style={[styles.hero, { backgroundColor: colors.secondary }]}>
-        <View style={styles.profileAvatar}>
-          <Text style={styles.profileAvatarText}>{(fullName.charAt(0) || 'K').toUpperCase()}</Text>
+      <View style={styles.hero}>
+        <View style={[styles.profileAvatar, { backgroundColor: '#FFFFFF' }]}>
+          <Text style={[styles.profileAvatarText, { color: colors.primary }]}>{(fullName.charAt(0) || 'K').toUpperCase()}</Text>
         </View>
-        <Text style={styles.profileName}>{fullName || 'Kouamé Adou'}</Text>
-        <Text style={styles.profileInfo}>{email || 'vous@exemple.com'} · {phone || '+225 07 00 00 00'}</Text>
+        <Text style={[styles.profileName, { color: colors.heading }]}>{fullName || 'Kouamé Adou'}</Text>
+        <Text style={[styles.profileInfo, { color: colors.headingMuted }]}>{email || 'vous@exemple.com'} · {phone || '+225 07 00 00 00'}</Text>
         {identityVerified && (
-          <View style={[styles.verifiedPill, { backgroundColor: colors.success }]}>
-            <ShieldCheck size={12} color="#FFFFFF" />
-            <Text style={styles.verifiedText}>Identité vérifiée</Text>
+          <View style={[styles.verifiedPill, { backgroundColor: colors.successSoft }]}>
+            <ShieldCheck size={12} color={colors.success} />
+            <Text style={[styles.verifiedText, { color: colors.success }]}>Identité vérifiée</Text>
           </View>
         )}
       </View>
@@ -167,20 +167,15 @@ function MenuItem({ icon, title, subtitle, status, onPress, colors }: any) {
 const styles = StyleSheet.create({
   hero: {
     paddingTop: 24,
-    paddingBottom: 46,
+    paddingBottom: 24,
     paddingHorizontal: 20,
     alignItems: 'center',
     gap: 6,
-    borderBottomLeftRadius: Radius.xl,
-    borderBottomRightRadius: Radius.xl,
   },
   profileAvatar: {
     width: 68,
     height: 68,
-    borderRadius: 24,
-    backgroundColor: 'rgba(255,255,255,0.12)',
-    borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.2)',
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
@@ -188,17 +183,14 @@ const styles = StyleSheet.create({
   profileAvatarText: {
     fontFamily: Fonts.displayBold,
     fontSize: 24,
-    color: '#fff',
   },
   profileName: {
     fontFamily: Fonts.display,
     fontSize: 19,
-    color: '#fff',
   },
   profileInfo: {
     fontFamily: Fonts.body,
     fontSize: 11.5,
-    color: 'rgba(255,255,255,0.75)',
   },
   verifiedPill: {
     flexDirection: 'row',
@@ -212,11 +204,10 @@ const styles = StyleSheet.create({
   verifiedText: {
     fontFamily: Fonts.bodyBold,
     fontSize: 10.5,
-    color: '#FFFFFF',
   },
   kycContainer: {
     paddingHorizontal: 16,
-    marginTop: -26,
+    marginTop: 4,
   },
   kycCard: {
     padding: 16,

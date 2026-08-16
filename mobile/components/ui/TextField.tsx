@@ -19,7 +19,7 @@ export default function TextField({ label, icon, error, isPassword, ...inputProp
 
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.label, { color: colors.textMuted }]}>{label}</Text>
+      <Text style={[styles.label, { color: colors.headingMuted }]}>{label}</Text>
       <View
         style={[
           styles.field,

@@ -44,10 +44,10 @@ export default function KycSelfieScreen() {
       <StepHeader title="Selfie de contrôle" />
 
       <View style={styles.body}>
-        <Text style={[styles.title, { color: colors.text }]}>
+        <Text style={[styles.title, { color: colors.heading }]}>
           Regardez droit dans <Text style={{ fontFamily: Fonts.displayItalic }}>l'objectif</Text>
         </Text>
-        <Text style={[styles.sub, { color: colors.textMuted }]}>
+        <Text style={[styles.sub, { color: colors.headingMuted }]}>
           Visage bien visible, sans lunettes de soleil ni casquette.
         </Text>
 
@@ -74,7 +74,7 @@ export default function KycSelfieScreen() {
           </View>
         </Pressable>
 
-        <Text style={[styles.hint, { color: colors.textMuted }]}>
+        <Text style={[styles.hint, { color: colors.headingMuted }]}>
           {busy ? 'Ouverture de la caméra…' : uri ? 'Photo capturée · appuyez pour reprendre' : 'Appuyez pour prendre le selfie'}
         </Text>
       </View>
