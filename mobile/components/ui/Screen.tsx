@@ -19,8 +19,8 @@ export default function Screen({ children, scroll = true, padded = false, style,
 
   const Container = scroll ? ScrollView : View;
   const containerProps = scroll
-    ? { contentContainerStyle: [padded && styles.padded, contentStyle], showsVerticalScrollIndicator: false }
-    : { style: [{ flex: 1 }, padded && styles.padded, contentStyle] };
+    ? { contentContainerStyle: [styles.inner, padded && styles.padded, contentStyle], showsVerticalScrollIndicator: false }
+    : { style: [{ flex: 1 }, styles.inner, padded && styles.padded, contentStyle] };
 
   return (
     <LinearGradient
@@ -37,6 +37,13 @@ export default function Screen({ children, scroll = true, padded = false, style,
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  // Phone-first layouts: on large viewports (RN Web) the content stays a
+  // centered column instead of stretching edge to edge.
+  inner: {
+    width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
   },
   padded: {
     paddingHorizontal: 22,

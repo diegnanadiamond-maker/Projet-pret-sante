@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
-import { Smile, Baby, Activity, Plus, FileClock, ShieldCheck, Banknote, Check, CalendarDays, FolderX } from 'lucide-react-native';
+import { Smile, Baby, Activity, Plus, FileClock, ShieldCheck, Send, FileSearch, BadgeCheck, Banknote, Check, CalendarDays, FolderX } from 'lucide-react-native';
 import Colors from '@/constants/Colors';
 import { Fonts, Radius, Spacing } from '@/constants/theme';
 import { useColorScheme } from '@/components/useColorScheme';
@@ -11,16 +11,20 @@ import StepHeader from '@/components/ui/StepHeader';
 import Card from '@/components/ui/Card';
 
 const CARE_LABELS: Record<number, { label: string; icon: any }> = {
-  1: { label: 'Prothèse dentaire', icon: Smile },
-  2: { label: 'Accouchement', icon: Baby },
+  1: { label: 'Soins dentaires', icon: Smile },
+  2: { label: 'Maternité & accouchement', icon: Baby },
   3: { label: 'Bilan de santé', icon: Activity },
-  4: { label: 'Autre soin', icon: Plus },
+  4: { label: 'Autre besoin de santé', icon: Plus },
 };
 
 const TRACK_STEPS = [
-  { icon: FileClock, label: 'Demande envoyée' },
-  { icon: ShieldCheck, label: 'Examen bancaire' },
-  { icon: Banknote, label: 'Décaissement' },
+  { icon: FileClock, label: 'Demande enregistrée' },
+  { icon: ShieldCheck, label: 'Dossier en cours de vérification' },
+  { icon: Send, label: 'Dossier transmis au partenaire financier' },
+  { icon: FileSearch, label: 'Étude de votre demande' },
+  { icon: BadgeCheck, label: 'Décision disponible' },
+  { icon: Check, label: 'Financement validé' },
+  { icon: Banknote, label: 'Fonds disponibles' },
 ];
 
 function formatFCFA(v: number) {
@@ -52,7 +56,7 @@ export default function LoanTrackerScreen() {
   }
 
   const monthly = calculateMonthly(loan.loanAmount, loan.loanDuration, loan.selectedOffer?.rate ?? 8.5);
-  const activeStepIndex = loan.status === 'in_review' ? 1 : 2;
+  const activeStepIndex = loan.status === 'in_review' ? 3 : 6;
   const care = CARE_LABELS[loan.loanType] ?? CARE_LABELS[1];
 
   return (
@@ -229,7 +233,9 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
   },
   trackStepLabel: {
-    fontSize: 14.5,
+    flex: 1,
+    fontSize: 13.5,
+    lineHeight: 18,
   },
   trackLine: {
     position: 'absolute',

@@ -28,13 +28,13 @@ export default function AmountStep() {
       <StepHeader step={2} totalSteps={5} />
 
       <Text style={[styles.title, { color: colors.heading }]}>
-        Quel <Text style={{ fontFamily: Fonts.displayItalic }}>montant</Text> vous faut-il ?
+        De quel <Text style={{ fontFamily: Fonts.displayItalic }}>montant</Text> avez-vous besoin ?
       </Text>
-      <Text style={[styles.sub, { color: colors.headingMuted }]}>Ajustez le curseur, la mensualité se calcule en direct.</Text>
+      <Text style={[styles.sub, { color: colors.headingMuted }]}>Indiquez le montant nécessaire au financement de vos soins.</Text>
 
       <View style={[styles.amountDisplay, { backgroundColor: '#FFFFFF', borderColor: colors.border }]}>
         <Text style={[styles.amountBig, { color: colors.primary }]}>{formatPrice(loanAmount)}</Text>
-        <Text style={[styles.amountSmall, { color: colors.textMuted }]}>Déplacez le curseur pour ajuster</Text>
+        <Text style={[styles.amountSmall, { color: colors.textMuted }]}>Montant à financer</Text>
       </View>
       <Slider
         style={{ width: '100%', height: 40, marginTop: 10 }}
@@ -48,11 +48,11 @@ export default function AmountStep() {
         thumbTintColor="#FFFFFF"
       />
       <View style={styles.rangeLabels}>
-        <Text style={[styles.rangeText, { color: colors.headingMuted }]}>50 000</Text>
+        <Text style={[styles.rangeText, { color: colors.headingMuted }]}>Montant minimum : 50 000 FCFA</Text>
         <Text style={[styles.rangeText, { color: colors.headingMuted }]}>2 000 000 FCFA</Text>
       </View>
 
-      <Text style={[styles.formLabel, { color: colors.headingMuted, marginTop: Spacing.lg }]}>Durée de remboursement</Text>
+      <Text style={[styles.formLabel, { color: colors.headingMuted, marginTop: Spacing.lg }]}>Choisissez votre durée de remboursement</Text>
       <View style={styles.durationGrid}>
         {[6, 12, 18, 24].map((d) => (
           <TouchableOpacity
@@ -77,23 +77,24 @@ export default function AmountStep() {
         ))}
       </View>
 
+      <Text style={[styles.formLabel, { color: colors.headingMuted, marginTop: Spacing.lg }]}>Votre estimation</Text>
       <View style={[styles.simCard, { backgroundColor: colors.primary, borderColor: 'transparent' }]}>
         <View style={styles.simItem}>
           <Text style={[styles.simVal, { color: '#FFFFFF' }]}>{formatPrice(monthly)}</Text>
-          <Text style={[styles.simLbl, { color: 'rgba(255,255,255,0.8)' }]}>/ mois</Text>
+          <Text style={[styles.simLbl, { color: 'rgba(255,255,255,0.8)' }]}>Mensualité estimée</Text>
         </View>
         <View style={styles.simItem}>
           <Text style={[styles.simVal, { color: '#FFFFFF' }]}>8,5%</Text>
-          <Text style={[styles.simLbl, { color: 'rgba(255,255,255,0.8)' }]}>Taux de base</Text>
+          <Text style={[styles.simLbl, { color: 'rgba(255,255,255,0.8)' }]}>Taux annuel</Text>
         </View>
         <View style={styles.simItem}>
           <Text style={[styles.simVal, { color: '#FFFFFF' }]}>{formatPrice(monthly * loanDuration)}</Text>
-          <Text style={[styles.simLbl, { color: 'rgba(255,255,255,0.8)' }]}>Total</Text>
+          <Text style={[styles.simLbl, { color: 'rgba(255,255,255,0.8)' }]}>Total à rembourser</Text>
         </View>
       </View>
 
       <View style={styles.footer}>
-        <Button label="Continuer" onPress={() => router.push('/(loan-request)/step-3-fees')} />
+        <Button label="Poursuivre ma simulation" onPress={() => router.push('/(loan-request)/recap')} />
       </View>
     </Screen>
   );
@@ -166,15 +167,18 @@ const styles = StyleSheet.create({
   },
   simItem: {
     alignItems: 'center',
+    flex: 1,
   },
   simVal: {
     fontFamily: Fonts.bodyBold,
     fontSize: 14.5,
+    textAlign: 'center',
   },
   simLbl: {
     fontFamily: Fonts.bodyMedium,
     fontSize: 10,
     marginTop: 2,
+    textAlign: 'center',
   },
   footer: {
     marginTop: Spacing.xl,

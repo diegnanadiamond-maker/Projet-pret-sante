@@ -44,10 +44,10 @@ export default function KycBankInfoScreen() {
 
       <View style={styles.intro}>
         <Text style={[styles.title, { color: colors.heading }]}>
-          Où doit-on <Text style={{ fontFamily: Fonts.displayItalic }}>vous verser</Text> les fonds ?
+          Renseignez votre <Text style={{ fontFamily: Fonts.displayItalic }}>compte bancaire</Text>
         </Text>
         <Text style={[styles.sub, { color: colors.headingMuted }]}>
-          Ces informations servent uniquement au décaissement de votre prêt vers votre compte.
+          Les informations renseignées seront utilisées uniquement pour le versement des fonds, selon les conditions de votre financement.
         </Text>
       </View>
 
@@ -114,8 +114,12 @@ export default function KycBankInfoScreen() {
         {error ? <Text style={[styles.errorText, { color: colors.danger }]}>{error}</Text> : null}
       </View>
 
+      <Text style={[styles.securityNote, { color: colors.headingMuted }]}>
+        🔒 Vos données bancaires sont protégées et utilisées uniquement dans le cadre de votre demande.
+      </Text>
+
       <View style={styles.footer}>
-        <Button label="Continuer" onPress={handleContinue} />
+        <Button label="Enregistrer mes coordonnées" onPress={handleContinue} />
       </View>
     </Screen>
   );
@@ -190,6 +194,12 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.bodyMedium,
     fontSize: 12.5,
     lineHeight: 18,
+  },
+  securityNote: {
+    fontFamily: Fonts.body,
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: Spacing.md,
   },
   footer: {
     marginTop: Spacing.xl,

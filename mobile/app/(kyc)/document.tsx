@@ -44,23 +44,23 @@ export default function KycDocumentScreen() {
 
       <View style={styles.intro}>
         <Text style={[styles.title, { color: colors.heading }]}>
-          Photographiez votre <Text style={{ fontFamily: Fonts.displayItalic }}>CNI</Text>
+          Vérifions votre <Text style={{ fontFamily: Fonts.displayItalic }}>identité</Text>
         </Text>
         <Text style={[styles.sub, { color: colors.headingMuted }]}>
-          Cadrez bien le document, à plat, sans reflet. Recto puis verso.
+          Pour sécuriser votre demande, veuillez photographier votre pièce d'identité.
         </Text>
       </View>
 
       <View style={styles.slots}>
         <DocSlot
-          label="Recto"
+          label="Recto de la CNI"
           uri={images.front}
           loading={busy === 'front'}
           onPress={() => capture('front')}
           colors={colors}
         />
         <DocSlot
-          label="Verso"
+          label="Verso de la CNI"
           uri={images.back}
           loading={busy === 'back'}
           onPress={() => capture('back')}
@@ -68,9 +68,13 @@ export default function KycDocumentScreen() {
         />
       </View>
 
+      <Text style={[styles.captureHint, { color: colors.headingMuted }]}>
+        Assurez-vous que le document est entièrement visible, lisible et sans reflet.
+      </Text>
+
       <View style={styles.footer}>
         <Button
-          label="Continuer vers le selfie"
+          label="Continuer"
           onPress={() => router.push('/(kyc)/selfie')}
           disabled={!bothCaptured}
         />
@@ -208,6 +212,12 @@ const styles = StyleSheet.create({
   cTR: { top: 8, right: 8, borderTopWidth: 2.5, borderRightWidth: 2.5, borderTopRightRadius: 6 },
   cBL: { bottom: 8, left: 8, borderBottomWidth: 2.5, borderLeftWidth: 2.5, borderBottomLeftRadius: 6 },
   cBR: { bottom: 8, right: 8, borderBottomWidth: 2.5, borderRightWidth: 2.5, borderBottomRightRadius: 6 },
+  captureHint: {
+    fontFamily: Fonts.body,
+    fontSize: 12,
+    lineHeight: 17,
+    marginTop: Spacing.md,
+  },
   footer: {
     marginTop: Spacing.xl,
     paddingBottom: Spacing.xxl,

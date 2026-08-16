@@ -21,11 +21,15 @@ const CLINICS = [
   { name: 'Polyclinique Internationale', location: 'Abidjan · Marcory', specialty: 'Maternité & pédiatrie', rating: 4.6 },
 ];
 
-const COMPARE_ROWS: { label: string; render: (b: (typeof BANKS)[number], monthly: (rate: number) => number) => string }[] = [
+type CompareCtx = { monthly: (rate: number) => number; amount: number; duration: number };
+
+const COMPARE_ROWS: { label: string; render: (b: (typeof BANKS)[number], ctx: CompareCtx) => string }[] = [
+  { label: 'Montant financé', render: (_b, ctx) => formatFCFA(ctx.amount) },
+  { label: 'Durée', render: (_b, ctx) => `${ctx.duration} mois` },
   { label: 'Taux', render: (b) => `${b.rate}`.replace('.', ',') + '%' },
-  { label: 'Mensualité', render: (b, monthly) => formatFCFA(monthly(b.rate)) },
-  { label: 'Délai', render: (b) => b.delay },
-  { label: 'Note', render: (b) => `${b.rating} ★` },
+  { label: 'Mensualité', render: (b, ctx) => formatFCFA(ctx.monthly(b.rate)) },
+  { label: 'Coût total', render: (b, ctx) => formatFCFA(ctx.monthly(b.rate) * ctx.duration) },
+  { label: 'Avis', render: (b) => `${b.rating} ★` },
 ];
 
 function formatFCFA(v: number) {
@@ -49,10 +53,10 @@ export default function PartnersScreen() {
   return (
     <Screen padded>
       <Text style={[styles.header, { color: colors.heading }]}>
-        Nos <Text style={{ fontFamily: Fonts.displayItalic }}>partenaires</Text>
+        Nos partenaires <Text style={{ fontFamily: Fonts.displayItalic }}>de confiance</Text>
       </Text>
       <Text style={[styles.sub, { color: colors.headingMuted }]}>
-        Cliniques agréées et banques qui financent vos soins de santé.
+        Un réseau d'établissements de santé et de partenaires financiers pour faciliter l'accès à vos soins.
       </Text>
 
       <View style={[styles.segmented, { backgroundColor: 'rgba(255,255,255,0.25)' }]}>
@@ -60,13 +64,13 @@ export default function PartnersScreen() {
           style={[styles.segment, tab === 'clinics' && { backgroundColor: colors.primary }]}
           onPress={() => setTab('clinics')}
         >
-          <Text style={[styles.segmentText, { color: tab === 'clinics' ? '#FFFFFF' : colors.headingMuted }]}>Cliniques</Text>
+          <Text style={[styles.segmentText, { color: tab === 'clinics' ? '#FFFFFF' : colors.headingMuted }]}>Établissements de santé</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={[styles.segment, tab === 'banks' && { backgroundColor: colors.primary }]}
           onPress={() => setTab('banks')}
         >
-          <Text style={[styles.segmentText, { color: tab === 'banks' ? '#FFFFFF' : colors.headingMuted }]}>Banques</Text>
+          <Text style={[styles.segmentText, { color: tab === 'banks' ? '#FFFFFF' : colors.headingMuted }]}>Partenaires financiers</Text>
         </TouchableOpacity>
       </View>
 
@@ -97,8 +101,8 @@ export default function PartnersScreen() {
         <>
           <Text style={[styles.hint, { color: colors.headingMuted }]}>
             {selected.length < 2
-              ? 'Sélectionnez au moins 2 banques pour les comparer.'
-              : `Comparaison de ${selected.length} banques pour ${new Intl.NumberFormat('fr-FR').format(loanAmount)} FCFA sur ${loanDuration} mois.`}
+              ? 'Sélectionnez au moins deux offres pour comparer leurs conditions.'
+              : `Comparaison de ${selected.length} offres pour ${new Intl.NumberFormat('fr-FR').format(loanAmount)} FCFA sur ${loanDuration} mois.`}
           </Text>
 
           <View style={{ gap: 12, marginTop: Spacing.sm }}>
@@ -123,7 +127,9 @@ export default function PartnersScreen() {
                           Taux {`${b.rate}`.replace('.', ',')}%
                         </Text>
                         <View style={styles.metaDot} />
-                        <Text style={[styles.metaText, { color: colors.textMuted }]}>{b.delay}</Text>
+                        <Text style={[styles.metaText, { color: colors.textMuted }]}>{loanDuration} mois</Text>
+                        <View style={styles.metaDot} />
+                        <Text style={[styles.metaText, { color: colors.textMuted }]}>{formatFCFA(monthlyFor(b.rate))}/mois</Text>
                         <View style={styles.metaDot} />
                         <Star size={11} color={colors.accentSky} fill={colors.accentSky} />
                         <Text style={[styles.metaText, { color: colors.textMuted }]}>{b.rating}</Text>
@@ -148,7 +154,10 @@ export default function PartnersScreen() {
 
           {compared.length >= 2 && (
             <Card style={styles.compareCard}>
-              <Text style={[styles.compareTitle, { color: colors.text }]}>Comparatif</Text>
+              <Text style={[styles.compareTitle, { color: colors.text }]}>Comparez vos offres</Text>
+              <Text style={[styles.compareSub, { color: colors.textMuted }]}>
+                Plusieurs solutions sont disponibles pour votre projet de santé.
+              </Text>
               <View style={styles.compareHeaderRow}>
                 <View style={styles.compareLabelCol} />
                 {compared.map((b) => (
@@ -166,7 +175,9 @@ export default function PartnersScreen() {
                   </View>
                   {compared.map((b) => (
                     <View key={b.name} style={styles.compareCol}>
-                      <Text style={[styles.compareValue, { color: colors.text }]}>{row.render(b, monthlyFor)}</Text>
+                      <Text style={[styles.compareValue, { color: colors.text }]}>
+                        {row.render(b, { monthly: monthlyFor, amount: loanAmount, duration: loanDuration })}
+                      </Text>
                     </View>
                   ))}
                 </View>
@@ -181,8 +192,8 @@ export default function PartnersScreen() {
         onPress={() => router.push('/(loan-request)/step-1-care')}
       >
         <View style={{ flex: 1 }}>
-          <Text style={styles.ctaTitle}>Simulez votre prêt santé</Text>
-          <Text style={styles.ctaSub}>Choisissez une clinique et une banque en direct</Text>
+          <Text style={styles.ctaTitle}>Commencer ma demande</Text>
+          <Text style={styles.ctaSub}>Trouvez la solution de financement adaptée à votre besoin de santé.</Text>
         </View>
         <View style={styles.ctaArrow}>
           <ArrowRight size={16} color={colors.primary} />
@@ -218,7 +229,8 @@ const styles = StyleSheet.create({
   },
   segmentText: {
     fontFamily: Fonts.bodyBold,
-    fontSize: 13,
+    fontSize: 11.5,
+    textAlign: 'center',
   },
   hint: {
     fontFamily: Fonts.bodyMedium,
@@ -286,6 +298,12 @@ const styles = StyleSheet.create({
   compareTitle: {
     fontFamily: Fonts.bodyBold,
     fontSize: 14,
+    marginBottom: 2,
+  },
+  compareSub: {
+    fontFamily: Fonts.body,
+    fontSize: 11.5,
+    lineHeight: 16,
     marginBottom: 10,
   },
   compareHeaderRow: {
@@ -298,7 +316,7 @@ const styles = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   compareLabelCol: {
-    width: 78,
+    width: 96,
     justifyContent: 'center',
   },
   compareLabel: {

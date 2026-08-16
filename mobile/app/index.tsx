@@ -16,17 +16,17 @@ const SLIDES = [
   {
     icon: HeartPulse,
     tag: '01 — Soins',
-    body: 'Dentaire, accouchement, bilans, chirurgie — avancez sans attendre votre prochaine paie.',
+    body: 'La santé ne devrait pas attendre pour des raisons financières.',
   },
   {
     icon: Building2,
-    tag: '02 — Banques',
-    body: 'Nos partenaires bancaires se disputent votre dossier. Vous choisissez la meilleure offre.',
+    tag: '02 — Partenaires',
+    body: 'Comparez les solutions de financement disponibles et choisissez celle qui vous convient.',
   },
   {
     icon: ShieldCheck,
-    tag: '03 — Sécurité',
-    body: 'Vérification en quelques minutes, conforme aux normes locales de confidentialité.',
+    tag: '03 — Confiance',
+    body: 'Votre santé mérite une solution adaptée.',
   },
 ];
 
@@ -68,8 +68,8 @@ export default function OnboardingScreen() {
           </View>
 
           <Text style={styles.heroTitle}>
-            La santé n'attend pas.{'\n'}
-            <Text style={[styles.heroTitleItalic, { color: colors.heroAccent }]}>Votre financement non plus.</Text>
+            Financez vos soins{'\n'}
+            <Text style={[styles.heroTitleItalic, { color: colors.heroAccent }]}>en toute sérénité.</Text>
           </Text>
           <Text style={styles.body}>{current.body}</Text>
 
@@ -90,12 +90,13 @@ export default function OnboardingScreen() {
           </View>
 
           <View style={styles.footer}>
-            <Button label="Créer un compte" onPress={() => router.push('/(auth)/register')} />
+            <Button label="Commencer ma demande" onPress={() => router.push('/(auth)/register')} />
             <Button
-              label="J'ai déjà un compte"
+              label="Se connecter"
               style={{ backgroundColor: colors.secondary }}
               onPress={() => router.push('/(auth)/login')}
             />
+            <Text style={styles.tagline}>Un parcours simple, sécurisé et transparent.</Text>
           </View>
         </View>
       </View>
@@ -113,6 +114,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     paddingTop: 64,
     paddingBottom: Spacing.xl,
+    width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
   },
   top: {
     gap: 14,
@@ -162,5 +166,12 @@ const styles = StyleSheet.create({
   },
   footer: {
     gap: 12,
+  },
+  tagline: {
+    fontFamily: Fonts.bodyMedium,
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.75)',
+    textAlign: 'center',
+    marginTop: 4,
   },
 });
