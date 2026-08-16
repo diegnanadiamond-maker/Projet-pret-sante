@@ -80,7 +80,8 @@ export default function OnboardingScreen() {
         resizeMode="cover"
       >
         <LinearGradient
-          colors={['rgba(10,40,42,0.35)', colors.gradientStart]}
+          colors={['rgba(8,30,32,0.15)', 'rgba(14,90,94,0.55)', 'rgba(18,135,140,0.9)', colors.gradientStart]}
+          locations={[0, 0.55, 0.85, 1]}
           start={{ x: 0, y: 0 }}
           end={{ x: 0, y: 1 }}
           style={StyleSheet.absoluteFillObject}
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   hero: {
-    height: '52%',
+    height: '40%',
     paddingTop: 64,
     paddingBottom: 28,
     paddingHorizontal: Spacing.lg,
