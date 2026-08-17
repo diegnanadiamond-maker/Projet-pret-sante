@@ -21,7 +21,7 @@ const CARE_LABELS: Record<number, { label: string; icon: any }> = {
 export default function RecapStep() {
   const router = useRouter();
   const colors = Colors[useColorScheme() ?? 'light'];
-  const { loanType, establishment, loanAmount, loanDuration, calculateMonthly } = useData();
+  const { loanType, establishment, loanAmount, loanDuration, calculateMonthly, selectedOffer } = useData();
 
   const care = CARE_LABELS[loanType] ?? CARE_LABELS[1];
   const monthly = calculateMonthly(loanAmount, loanDuration);
@@ -46,22 +46,19 @@ export default function RecapStep() {
       <Card style={styles.recapCard}>
         <RecapLine label="Besoin financé" value={care.label} colors={colors} />
         <RecapLine label="Établissement" value={establishment} colors={colors} />
+        <RecapLine label="Financé par" value={selectedOffer?.bank ?? '—'} colors={colors} />
         <RecapLine label="Montant demandé" value={format(loanAmount)} colors={colors} bold />
         <RecapLine label="Durée" value={`${loanDuration} mois`} colors={colors} />
         <RecapLine label="Mensualité estimée" value={format(monthly)} colors={colors} bold last />
       </Card>
 
       <Text style={[styles.note, { color: colors.headingMuted }]}>
-        Vous pourrez comparer les conditions proposées par nos partenaires avant de sélectionner votre offre.
+        Ce financement sera assuré par {selectedOffer?.bank ?? 'votre partenaire'}, associé à votre profil lors de
+        votre inscription.
       </Text>
 
       <View style={styles.footer}>
-        <Button label="Comparer les offres" onPress={() => router.push('/(tabs)/partners')} />
-        <Button
-          label="Poursuivre ma demande"
-          style={{ backgroundColor: colors.secondary }}
-          onPress={() => router.push('/(loan-request)/step-3-fees')}
-        />
+        <Button label="Poursuivre ma demande" onPress={() => router.push('/(loan-request)/step-3-fees')} />
       </View>
     </Screen>
   );
