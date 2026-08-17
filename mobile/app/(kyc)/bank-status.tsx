@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13,
+    fontSize: 15,
     marginTop: 6,
     marginBottom: Spacing.xl,
   },

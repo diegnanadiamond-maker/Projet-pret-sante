@@ -150,8 +150,8 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 15,
+    lineHeight: 21,
   },
   slots: {
     flexDirection: 'row',
@@ -177,11 +177,11 @@ const styles = StyleSheet.create({
   },
   slotHint: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 11,
+    fontSize: 12,
   },
   slotLabel: {
     fontFamily: Fonts.bodySemiBold,
-    fontSize: 12.5,
+    fontSize: 13.5,
     marginTop: 8,
     textAlign: 'center',
   },
@@ -214,8 +214,8 @@ const styles = StyleSheet.create({
   cBR: { bottom: 8, right: 8, borderBottomWidth: 2.5, borderRightWidth: 2.5, borderBottomRightRadius: 6 },
   captureHint: {
     fontFamily: Fonts.body,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 13,
+    lineHeight: 19,
     marginTop: Spacing.md,
   },
   footer: {

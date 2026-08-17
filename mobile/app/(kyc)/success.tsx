@@ -95,9 +95,9 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13.5,
+    fontSize: 15,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 21,
   },
   footer: {
     paddingBottom: Spacing.xxl,

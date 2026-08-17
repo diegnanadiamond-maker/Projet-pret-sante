@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
   },
   greeting: {
     fontFamily: Fonts.body,
-    fontSize: 12.5,
+    fontSize: 13.5,
   },
   title: {
     fontFamily: Fonts.display,
@@ -239,10 +239,10 @@ const styles = StyleSheet.create({
   },
   ctaSub: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 12.5,
+    fontSize: 13.5,
     color: 'rgba(255,255,255,0.82)',
     marginTop: 6,
-    lineHeight: 18,
+    lineHeight: 20,
     maxWidth: '86%',
   },
   section: {
@@ -273,12 +273,12 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontFamily: Fonts.bodyBold,
-    fontSize: 13.5,
+    fontSize: 14.5,
   },
   emptyBody: {
     fontFamily: Fonts.body,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 13,
+    lineHeight: 19,
     marginTop: 2,
   },
   activityItem: {
@@ -305,7 +305,7 @@ const styles = StyleSheet.create({
   },
   actSubtitle: {
     fontFamily: Fonts.body,
-    fontSize: 11,
+    fontSize: 12,
     marginTop: 1,
   },
   actBadge: {

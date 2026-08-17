@@ -133,8 +133,8 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 15,
+    lineHeight: 21,
     marginTop: 6,
   },
   policyBanner: {
@@ -148,8 +148,8 @@ const styles = StyleSheet.create({
   policyText: {
     flex: 1,
     fontFamily: Fonts.body,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 13,
+    lineHeight: 19,
   },
   row: {
     flexDirection: 'row',

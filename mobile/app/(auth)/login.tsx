@@ -101,15 +101,15 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13.5,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 21,
   },
   form: {
     gap: Spacing.md,
   },
   errorText: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 12.5,
+    fontSize: 13.5,
   },
   forgot: {
     fontFamily: Fonts.bodyBold,

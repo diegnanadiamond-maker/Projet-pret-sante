@@ -82,7 +82,7 @@ export default function CareTypeStep() {
                   setShowPicker(false);
                 }}
               >
-                <Text style={{ fontFamily: Fonts.bodyMedium, fontSize: 13, color: colors.text }}>{e}</Text>
+                <Text style={{ fontFamily: Fonts.bodyMedium, fontSize: 14, color: colors.text }}>{e}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13,
+    fontSize: 15,
     marginTop: 6,
     marginBottom: Spacing.lg,
   },
@@ -133,13 +133,13 @@ const styles = StyleSheet.create({
   },
   formLabel: {
     fontFamily: Fonts.bodySemiBold,
-    fontSize: 12,
+    fontSize: 13,
     paddingHorizontal: 2,
   },
   formHint: {
     fontFamily: Fonts.body,
-    fontSize: 11.5,
-    lineHeight: 16,
+    fontSize: 12.5,
+    lineHeight: 18,
     paddingHorizontal: 2,
     marginTop: -4,
   },

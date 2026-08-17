@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   },
   notFoundBody: {
     fontFamily: Fonts.body,
-    fontSize: 13,
+    fontSize: 14,
     textAlign: 'center',
   },
   contextRow: {
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   },
   contextSub: {
     fontFamily: Fonts.body,
-    fontSize: 12,
+    fontSize: 13,
     marginTop: 1,
   },
   contextBadge: {
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
   },
   trackSub: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 13,
+    fontSize: 14,
     marginTop: 2,
   },
   trackSteps: {
@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
   },
   paySub: {
     fontFamily: Fonts.body,
-    fontSize: 11,
+    fontSize: 12,
     marginTop: 1,
   },
   payAmount: {

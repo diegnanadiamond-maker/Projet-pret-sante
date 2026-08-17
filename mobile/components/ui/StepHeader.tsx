@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   },
   titleBadgeText: {
     fontFamily: Fonts.bodyBold,
-    fontSize: 12.5,
+    fontSize: 13.5,
     color: '#FFFFFF',
     textAlign: 'center',
   },

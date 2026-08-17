@@ -211,8 +211,8 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 15,
+    lineHeight: 21,
     marginTop: 6,
   },
   segmented: {
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 12,
+    fontSize: 13,
     marginTop: Spacing.md,
   },
   partnerCard: {
@@ -275,7 +275,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontFamily: Fonts.bodySemiBold,
-    fontSize: 10.5,
+    fontSize: 11.5,
   },
   metaDot: {
     width: 3,
@@ -302,8 +302,8 @@ const styles = StyleSheet.create({
   },
   compareSub: {
     fontFamily: Fonts.body,
-    fontSize: 11.5,
-    lineHeight: 16,
+    fontSize: 12.5,
+    lineHeight: 18,
     marginBottom: 10,
   },
   compareHeaderRow: {
@@ -354,7 +354,7 @@ const styles = StyleSheet.create({
   },
   ctaSub: {
     fontFamily: Fonts.body,
-    fontSize: 11.5,
+    fontSize: 12.5,
     color: 'rgba(255,255,255,0.75)',
     marginTop: 2,
   },

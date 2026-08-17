@@ -98,8 +98,8 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 15,
+    lineHeight: 21,
   },
   recapCard: {
     gap: 0,
@@ -113,18 +113,18 @@ const styles = StyleSheet.create({
   },
   lineLabel: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 12.5,
+    fontSize: 13.5,
   },
   lineValue: {
     flex: 1,
     fontFamily: Fonts.bodySemiBold,
-    fontSize: 12.5,
+    fontSize: 13.5,
     textAlign: 'right',
   },
   note: {
     fontFamily: Fonts.body,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 13,
+    lineHeight: 19,
     marginTop: Spacing.md,
   },
   footer: {

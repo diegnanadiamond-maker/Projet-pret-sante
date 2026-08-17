@@ -147,8 +147,8 @@ const styles = StyleSheet.create({
   },
   body: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 22,
     color: 'rgba(255,255,255,0.85)',
     maxWidth: '92%',
   },
@@ -169,7 +169,7 @@ const styles = StyleSheet.create({
   },
   tagline: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 12,
+    fontSize: 13,
     color: 'rgba(255,255,255,0.75)',
     textAlign: 'center',
     marginTop: 4,

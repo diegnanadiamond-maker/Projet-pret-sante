@@ -100,9 +100,9 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13,
+    fontSize: 15,
     textAlign: 'center',
-    lineHeight: 19,
+    lineHeight: 21,
     marginBottom: Spacing.lg,
   },
   frameWrap: {
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 12,
+    fontSize: 13,
     marginTop: Spacing.md,
   },
   footer: {

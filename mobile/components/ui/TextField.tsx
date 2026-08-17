@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontFamily: Fonts.bodySemiBold,
-    fontSize: 12.5,
+    fontSize: 13.5,
     paddingHorizontal: 2,
   },
   field: {
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
   },
   error: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 11.5,
+    fontSize: 12.5,
     paddingHorizontal: 2,
   },
 });

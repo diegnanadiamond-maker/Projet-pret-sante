@@ -123,9 +123,9 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13.5,
+    fontSize: 15,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 21,
   },
   otpWrap: {
     marginTop: Spacing.lg,
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 12,
+    fontSize: 13,
   },
   resendRow: {
     marginTop: Spacing.md,

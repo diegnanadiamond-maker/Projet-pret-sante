@@ -87,7 +87,7 @@ export default function KycBankInfoScreen() {
                     <Landmark size={14} color={colors.textMuted} />
                   </View>
                 )}
-                <Text style={{ fontFamily: Fonts.bodyMedium, fontSize: 13, color: colors.text }}>{b.name}</Text>
+                <Text style={{ fontFamily: Fonts.bodyMedium, fontSize: 14, color: colors.text }}>{b.name}</Text>
               </TouchableOpacity>
             ))}
           </View>
@@ -138,8 +138,8 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13,
-    lineHeight: 19,
+    fontSize: 15,
+    lineHeight: 21,
   },
   formGroup: {
     gap: 8,
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
   },
   formLabel: {
     fontFamily: Fonts.bodySemiBold,
-    fontSize: 12,
+    fontSize: 13,
     paddingHorizontal: 2,
   },
   select: {
@@ -192,13 +192,13 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 12.5,
-    lineHeight: 18,
+    fontSize: 13.5,
+    lineHeight: 20,
   },
   securityNote: {
     fontFamily: Fonts.body,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 13,
+    lineHeight: 19,
     marginTop: Spacing.md,
   },
   footer: {

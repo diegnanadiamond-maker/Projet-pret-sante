@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13,
+    fontSize: 15,
     marginTop: 6,
     marginBottom: Spacing.lg,
   },
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   },
   amountSmall: {
     fontFamily: Fonts.body,
-    fontSize: 11,
+    fontSize: 12,
     marginTop: 4,
   },
   rangeLabels: {
@@ -134,11 +134,11 @@ const styles = StyleSheet.create({
   },
   rangeText: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 10,
+    fontSize: 11,
   },
   formLabel: {
     fontFamily: Fonts.bodySemiBold,
-    fontSize: 12,
+    fontSize: 13,
     marginBottom: 8,
   },
   durationGrid: {
@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   },
   simLbl: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 10,
+    fontSize: 11,
     marginTop: 2,
     textAlign: 'center',
   },

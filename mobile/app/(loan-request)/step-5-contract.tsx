@@ -82,7 +82,7 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13,
+    fontSize: 15,
     marginTop: 6,
     marginBottom: Spacing.lg,
   },
@@ -105,11 +105,11 @@ const styles = StyleSheet.create({
   },
   lineLabel: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 12.5,
+    fontSize: 13.5,
   },
   lineValue: {
     fontFamily: Fonts.bodySemiBold,
-    fontSize: 12.5,
+    fontSize: 13.5,
   },
   disclaimer: {
     padding: 14,
@@ -119,8 +119,8 @@ const styles = StyleSheet.create({
   },
   disclaimerText: {
     fontFamily: Fonts.body,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 13,
+    lineHeight: 19,
   },
   signLabel: {
     fontFamily: Fonts.bodySemiBold,

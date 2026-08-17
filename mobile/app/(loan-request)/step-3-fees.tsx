@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   },
   sub: {
     fontFamily: Fonts.body,
-    fontSize: 13,
+    fontSize: 15,
     marginTop: 6,
     marginBottom: Spacing.lg,
   },
@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   feeLabel: {
     fontFamily: Fonts.bodyMedium,
-    fontSize: 11.5,
+    fontSize: 12.5,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
@@ -171,12 +171,12 @@ const styles = StyleSheet.create({
   policyText: {
     flex: 1,
     fontFamily: Fonts.body,
-    fontSize: 12,
-    lineHeight: 17,
+    fontSize: 13,
+    lineHeight: 19,
   },
   formLabel: {
     fontFamily: Fonts.bodySemiBold,
-    fontSize: 12,
+    fontSize: 13,
     marginBottom: 8,
   },
   methodRow: {
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   methodLabel: {
     flex: 1,
     fontFamily: Fonts.bodyMedium,
-    fontSize: 13.5,
+    fontSize: 14.5,
   },
   check: {
     width: 22,
